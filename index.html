@@ -11,9 +11,9 @@
 
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
       background: #f3f5f7;
       color: #182230;
+      font-family: system-ui, sans-serif;
     }
 
     header {
@@ -22,10 +22,7 @@
       color: white;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 1.6rem;
-    }
+    header h1 { margin: 0; font-size: 1.6rem; }
 
     main {
       width: min(100% - 24px, 1050px);
@@ -34,9 +31,9 @@
 
     .panel, .card {
       padding: 18px;
-      background: white;
       border: 1px solid #d6dce2;
       border-radius: 12px;
+      background: white;
     }
 
     .panel { margin-bottom: 18px; }
@@ -58,10 +55,10 @@
     }
 
     input, select, button {
-      font: inherit;
-      border-radius: 8px;
       min-height: 44px;
       padding: 10px;
+      border-radius: 8px;
+      font: inherit;
     }
 
     input, select {
@@ -71,7 +68,7 @@
       color: #182230;
     }
 
-    input[type="radio"] {
+    input[type="radio"], input[type="checkbox"] {
       width: 20px;
       min-height: 20px;
       vertical-align: middle;
@@ -85,11 +82,7 @@
     }
 
     button.secondary { background: #52606d; }
-
-    button:disabled {
-      opacity: .55;
-      cursor: not-allowed;
-    }
+    button:disabled { opacity: .55; cursor: not-allowed; }
 
     :focus-visible {
       outline: 3px solid #0284c7;
@@ -98,8 +91,8 @@
 
     .row {
       display: flex;
-      align-items: center;
       flex-wrap: wrap;
+      align-items: center;
       gap: 10px;
     }
 
@@ -112,18 +105,17 @@
       margin-bottom: 18px;
     }
 
-    nav button[aria-pressed="true"] {
-      background: #087f5b;
-    }
+    nav button[aria-pressed="true"] { background: #087f5b; }
 
     .muted { color: #52606d; }
     .warning { color: #92400e; }
+    .spaced { margin-top: 16px; }
 
     .notice {
       padding: 12px;
-      background: #fff8df;
       border: 1px solid #e4c46a;
       border-radius: 8px;
+      background: #fff8df;
     }
 
     #message {
@@ -134,8 +126,18 @@
     #message[data-error="true"] { color: #b91c1c; }
     #message[data-error="false"] { color: #166534; }
 
+    .card p, li { overflow-wrap: anywhere; }
+    .card button { margin-right: 6px; margin-top: 8px; }
+
     ul { padding-left: 22px; }
     li { margin-bottom: 8px; }
+
+    fieldset {
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid #d6dce2;
+      border-radius: 8px;
+    }
 
     dialog {
       width: min(94vw, 580px);
@@ -146,24 +148,7 @@
       border-radius: 12px;
     }
 
-    dialog::backdrop {
-      background: rgb(0 0 0 / 45%);
-    }
-
-    .card p, li { overflow-wrap: anywhere; }
-    .spaced { margin-top: 16px; }
-
-    .card button {
-      margin-right: 6px;
-      margin-top: 8px;
-    }
-
-    .context {
-      margin: 0;
-      padding: 12px;
-      border: 1px solid #d6dce2;
-      border-radius: 8px;
-    }
+    dialog::backdrop { background: rgb(0 0 0 / 45%); }
   </style>
 </head>
 
@@ -174,22 +159,12 @@
   </header>
 
   <main>
-    <p class="notice">
-      Version en cours de validation : les opérations enregistrées
-      modifient réellement votre base.
-    </p>
-
     <section id="login-panel" class="panel">
       <h2>Connexion</h2>
 
       <form id="login-form">
         <label for="email">Adresse e-mail</label>
-        <input
-          id="email"
-          type="email"
-          autocomplete="username"
-          required
-        >
+        <input id="email" type="email" autocomplete="username" required>
 
         <label for="password">Mot de passe</label>
         <input
@@ -199,14 +174,28 @@
           required
         >
 
-        <button class="spaced" type="submit">
+        <label for="remember">
+          <input id="remember" type="checkbox">
+          Rester connecté sur cet appareil personnel
+        </label>
+
+        <p class="muted">
+          Sur une tablette partagée, laissez cette option décochée
+          et déconnectez-vous avant de changer d’utilisateur.
+        </p>
+
+        <button id="login-button" class="spaced" type="submit">
           Se connecter
         </button>
+
+        <p>
+          <a href="recuperation.html">Mot de passe oublié ?</a>
+        </p>
       </form>
 
       <p class="muted">
-        Cette version conserve la session dans la page uniquement.
-        Un rechargement nécessite une nouvelle connexion.
+        Le mot de passe n’est pas enregistré par l’application.
+        Sans connexion durable, la session est conservée dans cet onglet.
       </p>
     </section>
 
@@ -259,16 +248,11 @@
       <section id="tab-cart" class="panel" hidden>
         <h2>Panier</h2>
 
-        <fieldset class="context">
+        <fieldset>
           <legend>Contexte</legend>
           <div class="row">
             <label>
-              <input
-                type="radio"
-                name="context"
-                value="inventory"
-                checked
-              >
+              <input type="radio" name="context" value="inventory" checked>
               Inventaire
             </label>
             <label>
@@ -282,9 +266,7 @@
           <label for="cart-event">Événement</label>
           <div class="row">
             <select id="cart-event"></select>
-            <button id="new-event" type="button">
-              + Événement
-            </button>
+            <button id="new-event" type="button">+ Événement</button>
           </div>
         </div>
 
@@ -299,9 +281,7 @@
         <div id="cart-list" class="cards spaced"></div>
 
         <div class="row spaced">
-          <button id="validate-cart" type="button">
-            Valider le panier
-          </button>
+          <button id="validate-cart" type="button">Valider le panier</button>
           <button id="empty-cart" type="button" class="secondary">
             Vider le panier
           </button>
@@ -311,9 +291,7 @@
       <section id="tab-events" class="panel" hidden>
         <div class="row">
           <h2>Événements</h2>
-          <button id="new-event-list" type="button">
-            + Événement
-          </button>
+          <button id="new-event-list" type="button">+ Événement</button>
         </div>
 
         <p class="muted">
@@ -350,12 +328,9 @@
         <p id="pending-description"></p>
         <p>
           Le résultat est incertain. Ne fermez pas et ne rechargez
-          pas cette page. Réessayez la même demande pour éviter
-          un doublon.
+          pas cette page. Réessayez la même demande pour éviter un doublon.
         </p>
-        <button id="retry" type="button">
-          Vérifier ou réessayer
-        </button>
+        <button id="retry" type="button">Vérifier ou réessayer</button>
       </section>
     </div>
   </main>
@@ -365,19 +340,16 @@
 
     <form id="editor-form">
       <div id="editor-fields"></div>
-
       <div class="row spaced">
         <button id="editor-save" type="submit">Enregistrer</button>
-        <button
-          id="editor-cancel"
-          type="button"
-          class="secondary"
-        >
+        <button id="editor-cancel" type="button" class="secondary">
           Annuler
         </button>
       </div>
     </form>
   </dialog>
+
+  <script src="session.js"></script>
 
   <script>
     "use strict";
@@ -402,13 +374,8 @@
 
     function emptyData() {
       return {
-        articles: [],
-        lots: [],
-        events: [],
-        operations: [],
-        lines: [],
-        outstanding: [],
-        history: []
+        articles: [], lots: [], events: [], operations: [],
+        lines: [], outstanding: [], history: []
       };
     }
 
@@ -420,8 +387,7 @@
       source: null,
       pending: null,
       busy: false,
-      editorAction: null,
-      refreshPromise: null
+      editorAction: null
     };
 
     class ApiError extends Error {
@@ -451,8 +417,7 @@
     }
 
     function normalized(value) {
-      return value
-        .normalize("NFD")
+      return value.normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLocaleLowerCase("fr");
     }
@@ -473,8 +438,7 @@
 
     function dateTime(value) {
       return new Intl.DateTimeFormat("fr-FR", {
-        dateStyle: "short",
-        timeStyle: "short"
+        dateStyle: "short", timeStyle: "short"
       }).format(new Date(value));
     }
 
@@ -495,6 +459,12 @@
     }
 
     function checkConfiguration() {
+      if (!window.StockSession) {
+        throw new Error(
+          "session.js n’a pas été chargé. Publiez-le à côté de index.html."
+        );
+      }
+
       const url = new URL(SUPABASE_URL);
 
       if (
@@ -511,8 +481,7 @@
     }
 
     async function rawRequest(path, options = {}, token = null) {
-      let response;
-      let text;
+      let response, text;
 
       try {
         response = await fetch(
@@ -521,21 +490,16 @@
             ...options,
             headers: {
               apikey: SUPABASE_PUBLIC_KEY,
-              ...(token
-                ? { Authorization: `Bearer ${token}` }
-                : {}),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
               ...options.headers
             },
             cache: "no-store",
             signal: AbortSignal.timeout(15000)
           }
         );
-
         text = await response.text();
       } catch {
-        throw new ApiError(
-          "Service inaccessible ou réponse trop lente."
-        );
+        throw new ApiError("Service inaccessible ou réponse trop lente.");
       }
 
       let data = null;
@@ -550,8 +514,7 @@
       }
 
       if (!response.ok) {
-        let explanation =
-          `Demande refusée — code ${response.status}.`;
+        let explanation = `Demande refusée — code ${response.status}.`;
 
         if (data?.code === "P0001") {
           explanation = data.message;
@@ -560,17 +523,11 @@
             "Cette référence existe déjà. Pour un lot existant, " +
             "utilisez Achat / réception dans le panier.";
         } else if (response.status === 429) {
-          explanation =
-            "Trop de demandes. Attendez avant de réessayer.";
+          explanation = "Trop de demandes. Attendez avant de réessayer.";
         } else if (path.includes("grant_type=password")) {
-          explanation =
-            "Connexion refusée. Vérifiez vos identifiants.";
-        } else if (path.includes("grant_type=refresh_token")) {
-          explanation =
-            "La session n’a pas pu être renouvelée.";
+          explanation = "Connexion refusée. Vérifiez vos identifiants.";
         } else if (response.status === 401) {
-          explanation =
-            "Session invalide. Une reconnexion est nécessaire.";
+          explanation = "Session invalide. Une reconnexion est nécessaire.";
         }
 
         throw new ApiError(explanation, response.status);
@@ -579,69 +536,13 @@
       return data;
     }
 
-    function setSession(data) {
-      if (
-        !data?.access_token ||
-        !data?.refresh_token ||
-        !data?.user?.id
-      ) {
-        throw new Error("Réponse de connexion inattendue.");
-      }
-
-      const expiry = Number(
-        data.expires_at ??
-        Math.floor(Date.now() / 1000) + Number(data.expires_in)
-      );
-
-      if (!Number.isFinite(expiry)) {
-        throw new Error("Expiration de session invalide.");
-      }
-
-      state.session = {
-        token: data.access_token,
-        refresh: data.refresh_token,
-        expiry,
-        userId: data.user.id
-      };
-    }
-
     async function ensureSession() {
-      if (!state.session) {
-        throw new Error("Connectez-vous.");
-      }
-
-      if (state.refreshPromise) {
-        return state.refreshPromise;
-      }
-
-      if (state.session.expiry > Date.now() / 1000 + 90) {
-        return;
-      }
-
-      state.refreshPromise = (async () => {
-        const renewed = await rawRequest(
-          "/auth/v1/token?grant_type=refresh_token",
-          post({ refresh_token: state.session.refresh })
-        );
-
-        setSession(renewed);
-      })();
-
-      try {
-        await state.refreshPromise;
-      } finally {
-        state.refreshPromise = null;
-      }
+      state.session = await StockSession.ensure(state.session);
     }
 
     async function api(path, options = {}) {
       await ensureSession();
-
-      return rawRequest(
-        path,
-        options,
-        state.session.token
-      );
+      return rawRequest(path, options, state.session.token);
     }
 
     function rpc(name, body = {}) {
@@ -664,6 +565,8 @@
     function syncControls() {
       const blocked = state.busy || Boolean(state.pending);
 
+      $("#login-button").disabled = state.busy;
+
       for (const item of document.querySelectorAll(
         "#workspace button, #workspace input, #workspace select"
       )) {
@@ -674,10 +577,7 @@
       $("#refresh").disabled = state.busy;
       $("#retry").disabled = state.busy;
       $("#pending-panel").hidden = !state.pending;
-
-      $("#pending-description").textContent = state.pending
-        ? state.pending.label
-        : "";
+      $("#pending-description").textContent = state.pending?.label ?? "";
 
       for (const item of document.querySelectorAll(
         "#editor input, #editor select, #editor button"
@@ -686,16 +586,13 @@
       }
 
       if (!state.busy) {
-        const mode = $("#edit-lot-mode");
-        const dateType = $("#edit-date-type");
-
-        if (mode && $("#edit-received")) {
+        if ($("#edit-lot-mode") && $("#edit-received")) {
           $("#edit-received").disabled =
-            mode.value === "without";
+            $("#edit-lot-mode").value === "without";
         }
 
-        if (dateType && $("#edit-date")) {
-          $("#edit-date").disabled = !dateType.value;
+        if ($("#edit-date-type") && $("#edit-date")) {
+          $("#edit-date").disabled = !$("#edit-date-type").value;
         }
       }
     }
@@ -708,14 +605,36 @@
         "lines", "outstanding", "history"
       ]) {
         if (!Array.isArray(data?.[key])) {
-          throw new Error(
-            "Réponse de l’espace stock inattendue."
-          );
+          throw new Error("Réponse de l’espace stock inattendue.");
         }
       }
 
       state.data = data;
       render();
+    }
+
+    async function openWorkspace() {
+      await ensureSession();
+
+      const members = await api(
+        "/rest/v1/members?select=display_name,role,active" +
+        `&user_id=eq.${encodeURIComponent(state.session.userId)}`
+      );
+
+      if (
+        !Array.isArray(members) ||
+        members.length !== 1 ||
+        !members[0].active
+      ) {
+        throw new Error("Ce compte n’est pas autorisé.");
+      }
+
+      state.member = members[0];
+      await load();
+
+      $("#identity").textContent = state.member.display_name;
+      $("#login-panel").hidden = true;
+      $("#workspace").hidden = false;
     }
 
     async function task(action) {
@@ -729,8 +648,7 @@
       } catch (error) {
         message(
           error.message +
-          " Si une création semble incertaine, actualisez " +
-          "avant de la répéter.",
+          " Si une création semble incertaine, actualisez avant de la répéter.",
           true
         );
       } finally {
@@ -743,14 +661,11 @@
       const wrapper = element("div");
       const caption = element("label", label);
       caption.htmlFor = id;
-
       const input = element("input");
       input.id = id;
       input.type = type;
-
       wrapper.append(caption, input);
       $("#editor-fields").append(wrapper);
-
       return input;
     }
 
@@ -758,7 +673,6 @@
       const wrapper = element("div");
       const caption = element("label", label);
       caption.htmlFor = id;
-
       const select = element("select");
       select.id = id;
 
@@ -770,17 +684,14 @@
 
       wrapper.append(caption, select);
       $("#editor-fields").append(wrapper);
-
       return select;
     }
 
     function openEditor(title, build, action) {
       if (state.busy || state.pending) return;
-
       $("#editor-title").textContent = title;
       $("#editor-fields").replaceChildren();
       $("#editor-save").textContent = "Enregistrer";
-
       build();
       state.editorAction = action;
       syncControls();
@@ -793,8 +704,7 @@
         message(text);
       } catch {
         message(
-          text +
-          " Actualisation impossible : cliquez sur Actualiser " +
+          text + " Actualisation impossible : cliquez sur Actualiser " +
           "sans répéter l’opération.",
           true
         );
@@ -816,11 +726,8 @@
 
     function newRequestId() {
       if (!globalThis.crypto?.randomUUID) {
-        throw new Error(
-          "Utilisez un navigateur récent en contexte local ou HTTPS."
-        );
+        throw new Error("Utilisez un navigateur récent et une page HTTPS.");
       }
-
       return crypto.randomUUID();
     }
 
@@ -839,12 +746,7 @@
         unit.required = true;
         unit.maxLength = 80;
 
-        const minimum = field(
-          "edit-minimum",
-          "Seuil de stock bas",
-          "number"
-        );
-
+        const minimum = field("edit-minimum", "Seuil de stock bas", "number");
         minimum.min = "0";
         minimum.step = "1";
         minimum.value = "0";
@@ -869,23 +771,13 @@
           ["without", "Créer le lot sans réception"]
         ]);
 
-        const reference = field(
-          "edit-reference",
-          "Référence interne du nouveau lot"
-        );
-
+        const reference = field("edit-reference", "Référence interne du lot");
         reference.required = true;
         reference.maxLength = 100;
 
-        const type = choice(
-          "edit-date-type",
-          "Type de date",
-          [
-            ["", "Sans date applicable"],
-            ["DLC", "DLC"],
-            ["DDM", "DDM"]
-          ]
-        );
+        const type = choice("edit-date-type", "Type de date", [
+          ["", "Sans date applicable"], ["DLC", "DLC"], ["DDM", "DDM"]
+        ]);
 
         const date = field("edit-date", "Date", "date");
 
@@ -894,43 +786,30 @@
           `Quantité reçue — ${item.unit}`,
           "number"
         );
-
         quantity.min = "1";
         quantity.max = "2147483647";
         quantity.step = "1";
 
-        const reason = field(
-          "edit-receipt-reason",
-          "Motif de réception"
-        );
-
+        const reason = field("edit-receipt-reason", "Motif de réception");
         reason.maxLength = 200;
         reason.value = "Achat / réception";
 
-        $("#editor-fields").append(
-          element(
-            "p",
-            "Avec réception : le lot et l’entrée de stock sont " +
-            "enregistrés ensemble, dans le contexte Inventaire.",
-            "muted"
-          )
-        );
+        $("#editor-fields").append(element(
+          "p",
+          "La réception est enregistrée dans le contexte Inventaire.",
+          "muted"
+        ));
 
         function update() {
-          const receive =
-            $("#edit-lot-mode").value === "receive";
-
+          const receive = $("#edit-lot-mode").value === "receive";
           quantity.parentElement.hidden = !receive;
           quantity.required = receive;
           quantity.disabled = !receive;
-
           reason.parentElement.hidden = !receive;
           reason.required = receive;
-
           date.disabled = !type.value;
           date.required = Boolean(type.value);
           if (!type.value) date.value = "";
-
           $("#editor-save").textContent = receive
             ? "Enregistrer le lot et la réception"
             : "Créer le lot sans réception";
@@ -957,12 +836,9 @@
           });
 
           $("#editor").close();
-
           await updateAfterWrite(
-            "Lot créé sans quantité. Il est disponible " +
-            "dans le choix des lots du panier."
+            "Lot créé sans quantité. Il est sélectionnable dans le panier."
           );
-
           return;
         }
 
@@ -975,9 +851,7 @@
           quantity > 2147483647 ||
           !reason
         ) {
-          throw new Error(
-            "Indiquez une quantité entière positive et un motif."
-          );
+          throw new Error("Indiquez une quantité entière positive et un motif.");
         }
 
         if (!confirm(
@@ -1001,8 +875,6 @@
         };
 
         $("#editor").close();
-
-        // task() détient déjà le verrou de l'interface.
         await executePending();
       });
     }
@@ -1012,7 +884,6 @@
         const name = field("edit-name", "Nom");
         name.required = true;
         name.maxLength = 150;
-
         field("edit-event-date", "Date", "date");
         field("edit-notes", "Notes").maxLength = 2000;
       }, async () => {
@@ -1038,16 +909,12 @@
 
       if (item.category === "equipment") {
         options.push(["loan", kinds.loan]);
-
         if (context() === "event") {
           options.push(["internal_use", kinds.internal_use]);
         }
       }
 
-      if (
-        context() === "inventory" &&
-        state.member.role === "admin"
-      ) {
+      if (context() === "inventory" && state.member.role === "admin") {
         options.push(
           ["adjustment_in", kinds.adjustment_in],
           ["adjustment_out", kinds.adjustment_out]
@@ -1060,46 +927,26 @@
     function openCartLine(item, index = null) {
       const existing = index === null ? null : state.cart[index];
 
-      if (existing?.origin_line_id) {
-        message(
-          "La quantité de cette régularisation se modifie directement " +
-          "dans le panier. Pour changer Retour / Perte / Casse, " +
-          "retirez la ligne et utilisez la sortie d’origine."
-        );
-        return;
-      }
+      if (existing?.origin_line_id) return;
 
       openEditor(
         `${existing ? "Modifier" : "Ajouter"} — ${item.name}`,
         () => {
           const options = allowedKinds(item);
 
-          if (
-            existing &&
-            !options.some(([value]) => value === existing.kind)
-          ) {
+          if (existing && !options.some(([value]) => value === existing.kind)) {
             options.push([existing.kind, kinds[existing.kind]]);
           }
 
-          const type = choice(
-            "edit-kind",
-            "Opération",
-            options
-          );
-
+          const type = choice("edit-kind", "Opération", options);
           type.value = existing?.kind ??
             (context() === "event"
-              ? item.category === "food"
-                ? "consumption"
-                : "internal_use"
+              ? item.category === "food" ? "consumption" : "internal_use"
               : "purchase");
 
           const quantity = field(
-            "edit-quantity",
-            `Quantité — ${item.unit}`,
-            "number"
+            "edit-quantity", `Quantité — ${item.unit}`, "number"
           );
-
           quantity.min = "1";
           quantity.max = "2147483647";
           quantity.step = "1";
@@ -1108,54 +955,29 @@
 
           if (item.category === "food") {
             const lots = lotOptions(item.id);
-
-            const select = choice(
-              "edit-lot",
-              "Lot",
-              [
-                ["", "Choisir un lot"],
-                ...lots.map((lot) => [
-                  lot.id,
-                  `${lot.reference} — disponible ${lot.quantity} — ` +
-                  (lot.expiry_date
-                    ? `${lot.date_type} ${formatDate(lot.expiry_date)}`
-                    : "Sans date")
-                ])
-              ]
-            );
+            const select = choice("edit-lot", "Lot", [
+              ["", "Choisir un lot"],
+              ...lots.map((lot) => [
+                lot.id,
+                `${lot.reference} — disponible ${lot.quantity} — ` +
+                (lot.expiry_date
+                  ? `${lot.date_type} ${formatDate(lot.expiry_date)}`
+                  : "Sans date")
+              ])
+            ]);
 
             select.required = true;
-
-            if (existing) {
-              select.value = existing.lot_id || "";
-            } else {
-              select.value =
-                lotOptions(item.id, true)[0]?.id ??
-                lots[0]?.id ??
-                "";
-            }
-
-            $("#editor-fields").append(
-              element(
-                "p",
-                "La date n’interdit pas la sortie. Pour utiliser " +
-                "plusieurs lots, ajoutez une ligne par lot.",
-                "muted"
-              )
-            );
+            select.value = existing
+              ? existing.lot_id || ""
+              : lotOptions(item.id, true)[0]?.id ?? lots[0]?.id ?? "";
           }
 
-          const beneficiary = field(
-            "edit-beneficiary",
-            "Bénéficiaire du prêt"
-          );
-
+          const beneficiary = field("edit-beneficiary", "Bénéficiaire du prêt");
           beneficiary.maxLength = 150;
           beneficiary.value = existing?.beneficiary ?? "";
 
           function updateBeneficiary() {
-            beneficiary.parentElement.hidden =
-              type.value !== "loan";
+            beneficiary.parentElement.hidden = type.value !== "loan";
             beneficiary.required = type.value === "loan";
           }
 
@@ -1165,40 +987,27 @@
         async () => {
           const kind = $("#edit-kind").value;
           const quantity = Number($("#edit-quantity").value);
-
           const lotId = item.category === "food"
-            ? $("#edit-lot").value || null
-            : null;
-
+            ? $("#edit-lot").value || null : null;
           const beneficiary = kind === "loan"
-            ? $("#edit-beneficiary").value.trim()
-            : null;
+            ? $("#edit-beneficiary").value.trim() : null;
 
           if (
             !Number.isSafeInteger(quantity) ||
             quantity <= 0 ||
             quantity > 2147483647
-          ) {
-            throw new Error(
-              "La quantité doit être un entier positif."
-            );
-          }
+          ) throw new Error("La quantité doit être un entier positif.");
 
           if (item.category === "food" && !lotId) {
             throw new Error("Choisissez un lot.");
           }
 
           if (kind === "loan" && !beneficiary) {
-            throw new Error("Indiquez le bénéficiaire du prêt.");
+            throw new Error("Indiquez le bénéficiaire.");
           }
 
-          if (
-            kind === "internal_use" &&
-            context() !== "event"
-          ) {
-            throw new Error(
-              "L’utilisation interne nécessite un événement."
-            );
+          if (kind === "internal_use" && context() !== "event") {
+            throw new Error("L’utilisation interne nécessite un événement.");
           }
 
           const line = {
@@ -1210,20 +1019,12 @@
             origin_line_id: null
           };
 
-          if (index === null) {
-            state.cart.push(line);
-          } else {
-            state.cart[index] = line;
-          }
+          if (index === null) state.cart.push(line);
+          else state.cart[index] = line;
 
           $("#editor").close();
           renderCart();
-
-          message(
-            existing
-              ? "Ligne du panier modifiée."
-              : `${item.name} ajouté au panier.`
-          );
+          message(existing ? "Ligne modifiée." : `${item.name} ajouté au panier.`);
         }
       );
     }
@@ -1233,15 +1034,12 @@
       list.replaceChildren();
 
       const query = normalized($("#search").value.trim());
-
       const items = state.data.articles.filter((item) =>
         item.active &&
         normalized(`${item.name} ${item.unit}`).includes(query)
       );
 
-      if (!items.length) {
-        list.append(element("p", "Aucun article à afficher."));
-      }
+      if (!items.length) list.append(element("p", "Aucun article à afficher."));
 
       const today = new Date();
       const near = new Date(today);
@@ -1249,13 +1047,9 @@
 
       for (const item of items) {
         const card = element("article", undefined, "card");
-
         card.append(
           element("h3", item.name),
-          element(
-            "p",
-            `Disponible : ${item.available_quantity} ${item.unit}`
-          )
+          element("p", `Disponible : ${item.available_quantity} ${item.unit}`)
         );
 
         if (item.category === "equipment") {
@@ -1267,9 +1061,7 @@
         }
 
         if (item.available_quantity < item.minimum_stock) {
-          card.append(
-            element("p", "Stock bas.", "warning")
-          );
+          card.append(element("p", "Stock bas.", "warning"));
         }
 
         if (item.category === "food") {
@@ -1286,32 +1078,20 @@
               }
             }
 
-            ul.append(
-              element(
-                "li",
-                `${lot.reference} : ${lot.quantity} — ` +
-                (lot.expiry_date
-                  ? `${lot.date_type} ${formatDate(lot.expiry_date)}`
-                  : "Sans date") +
-                warning,
-                warning ? "warning" : ""
-              )
-            );
+            ul.append(element(
+              "li",
+              `${lot.reference} : ${lot.quantity} — ` +
+              (lot.expiry_date
+                ? `${lot.date_type} ${formatDate(lot.expiry_date)}`
+                : "Sans date") + warning,
+              warning ? "warning" : ""
+            ));
           }
 
-          card.append(
-            ul,
-            button("+ Lot / réception", () => openLot(item))
-          );
+          card.append(ul, button("+ Lot / réception", () => openLot(item)));
         }
 
-        card.append(
-          button(
-            "Ajouter au panier",
-            () => openCartLine(item)
-          )
-        );
-
+        card.append(button("Ajouter au panier", () => openCartLine(item)));
         list.append(card);
       }
     }
@@ -1319,17 +1099,13 @@
     function renderCart() {
       $("#cart-count").textContent = state.cart.length;
       $("#event-choice").hidden = context() !== "event";
-
       $("#cart-source").textContent = state.source
-        ? "Ce panier reprend une préparation précédente."
-        : "";
+        ? "Ce panier reprend une préparation précédente." : "";
 
       const list = $("#cart-list");
       list.replaceChildren();
 
-      if (!state.cart.length) {
-        list.append(element("p", "Votre panier est vide."));
-      }
+      if (!state.cart.length) list.append(element("p", "Votre panier est vide."));
 
       state.cart.forEach((line, index) => {
         const item = article(line.article_id);
@@ -1341,51 +1117,26 @@
         );
 
         if (!item?.active && !line.origin_line_id) {
-          card.append(
-            element(
-              "p",
-              "Article désactivé : retirez cette ligne.",
-              "warning"
-            )
-          );
+          card.append(element(
+            "p", "Article désactivé : retirez cette ligne.", "warning"
+          ));
         }
 
-        if (
-          line.kind === "internal_use" &&
-          context() !== "event"
-        ) {
-          card.append(
-            element(
-              "p",
-              "Cette utilisation nécessite un événement.",
-              "warning"
-            )
-          );
+        if (line.kind === "internal_use" && context() !== "event") {
+          card.append(element(
+            "p", "Cette utilisation nécessite un événement.", "warning"
+          ));
         }
 
         if (line.origin_line_id) {
-          card.append(
-            element(
-              "p",
-              "Régularisation liée à une sortie d’origine.",
-              "muted"
-            )
-          );
+          card.append(element(
+            "p", "Régularisation liée à une sortie d’origine.", "muted"
+          ));
         }
 
         if (line.beneficiary) {
-          card.append(
-            element(
-              "p",
-              `Bénéficiaire : ${line.beneficiary}`
-            )
-          );
+          card.append(element("p", `Bénéficiaire : ${line.beneficiary}`));
         }
-
-        const label = element(
-          "label",
-          `Quantité — ${item?.unit ?? "unité"}`
-        );
 
         const input = element("input");
         input.type = "number";
@@ -1393,64 +1144,44 @@
         input.max = "2147483647";
         input.step = "1";
         input.value = line.quantity;
-        input.setAttribute(
-          "aria-label",
-          `Quantité de ${item?.name ?? "l’article"}`
-        );
-
+        input.setAttribute("aria-label", `Quantité de ${item?.name ?? "l’article"}`);
         input.addEventListener("input", () => {
           line.quantity = Number(input.value);
         });
 
-        card.append(label, input);
+        card.append(element("label", `Quantité — ${item?.unit ?? "unité"}`), input);
 
         if (item?.category === "food") {
           const select = element("select");
-
-          select.setAttribute(
-            "aria-label",
-            `Lot de ${item.name}`
-          );
-
+          select.setAttribute("aria-label", `Lot de ${item.name}`);
           const empty = element("option", "Choisir un lot");
           empty.value = "";
           select.append(empty);
 
           for (const lot of lotOptions(item.id)) {
             const option = element(
-              "option",
-              `${lot.reference} — disponible ${lot.quantity}`
+              "option", `${lot.reference} — disponible ${lot.quantity}`
             );
-
             option.value = lot.id;
             select.append(option);
           }
 
           select.value = line.lot_id || "";
-
           select.addEventListener("change", () => {
             line.lot_id = select.value || null;
           });
-
           card.append(element("label", "Lot"), select);
         }
 
         if (item && !line.origin_line_id) {
-          card.append(
-            button(
-              "Modifier",
-              () => openCartLine(item, index)
-            )
-          );
+          card.append(button("Modifier", () => openCartLine(item, index)));
         }
 
-        card.append(
-          button("Retirer", () => {
-            if (state.busy || state.pending) return;
-            state.cart.splice(index, 1);
-            renderCart();
-          })
-        );
+        card.append(button("Retirer", () => {
+          if (state.busy || state.pending) return;
+          state.cart.splice(index, 1);
+          renderCart();
+        }));
 
         list.append(card);
       });
@@ -1467,9 +1198,7 @@
       empty.value = "";
       select.append(empty);
 
-      for (const event of state.data.events.filter(
-        (item) => !item.archived
-      )) {
+      for (const event of state.data.events.filter((item) => !item.archived)) {
         const option = element("option", event.name);
         option.value = event.id;
         select.append(option);
@@ -1480,22 +1209,15 @@
 
     function prepareFrom(operation) {
       if (state.busy || state.pending) return;
+      if (state.cart.length && !confirm("Remplacer le panier actuel ?")) return;
 
-      if (
-        state.cart.length &&
-        !confirm("Remplacer le panier actuel ?")
-      ) return;
-
-      const eligible = state.data.lines.filter((line) =>
+      state.cart = state.data.lines.filter((line) =>
         line.operation_id === operation.id &&
         ["consumption", "internal_use", "loan"].includes(line.kind)
-      );
-
-      state.cart = eligible.map((line) => ({
+      ).map((line) => ({
         article_id: line.article_id,
         lot_id: line.category === "food"
-          ? lotOptions(line.article_id, true)[0]?.id ?? null
-          : null,
+          ? lotOptions(line.article_id, true)[0]?.id ?? null : null,
         kind: line.kind,
         quantity: line.quantity,
         beneficiary: line.beneficiary,
@@ -1503,7 +1225,6 @@
       }));
 
       state.source = operation.id;
-
       $('input[name="context"][value="event"]').checked = true;
       $("#cart-event").value = "";
       $("#cart-reason").value =
@@ -1511,10 +1232,9 @@
 
       renderCart();
       selectTab("cart");
-
       message(
-        "Préparation copiée. Choisissez l’événement cible et " +
-        "vérifiez les articles, quantités, lots et bénéficiaires."
+        "Préparation copiée. Choisissez l’événement cible et vérifiez " +
+        "les quantités, lots et bénéficiaires."
       );
     }
 
@@ -1523,14 +1243,11 @@
       list.replaceChildren();
 
       if (!state.data.events.length) {
-        list.append(
-          element("p", "Aucun événement pour le moment.")
-        );
+        list.append(element("p", "Aucun événement pour le moment."));
       }
 
       for (const event of state.data.events) {
         const card = element("article", undefined, "card");
-
         card.append(
           element("h3", event.name),
           element("p", formatDate(event.event_date))
@@ -1540,37 +1257,23 @@
           card.append(element("p", "Événement archivé.", "muted"));
         }
 
-        const preparations = state.data.operations.filter(
-          (operation) =>
-            operation.event_id === event.id &&
-            state.data.lines.some((line) =>
-              line.operation_id === operation.id &&
-              ["consumption", "internal_use", "loan"]
-                .includes(line.kind)
-            )
+        const preparations = state.data.operations.filter((operation) =>
+          operation.event_id === event.id &&
+          state.data.lines.some((line) =>
+            line.operation_id === operation.id &&
+            ["consumption", "internal_use", "loan"].includes(line.kind)
+          )
         );
 
         for (const operation of preparations) {
           card.append(
-            element(
-              "p",
-              `${dateTime(operation.created_at)} — ${operation.reason}`
-            ),
-            button(
-              "Reprendre cette préparation",
-              () => prepareFrom(operation)
-            )
+            element("p", `${dateTime(operation.created_at)} — ${operation.reason}`),
+            button("Reprendre cette préparation", () => prepareFrom(operation))
           );
         }
 
         if (!preparations.length) {
-          card.append(
-            element(
-              "p",
-              "Aucune préparation enregistrée.",
-              "muted"
-            )
-          );
+          card.append(element("p", "Aucune préparation enregistrée.", "muted"));
         }
 
         list.append(card);
@@ -1580,78 +1283,55 @@
     function openSettlement(origin, kind) {
       if (state.busy || state.pending) return;
 
-      const selectedEvent = $("#cart-event").value || null;
-
-      const sameContext =
-        context() === origin.context &&
-        (
-          origin.context !== "event" ||
-          selectedEvent === origin.event_id
-        );
+      const sameContext = context() === origin.context &&
+        (origin.context !== "event" ||
+          ($("#cart-event").value || null) === origin.event_id);
 
       if (state.cart.length && !sameContext) {
         message(
-          "Le panier utilise un autre contexte. Validez-le ou " +
-          "videz-le avant de préparer cette régularisation.",
+          "Le panier utilise un autre contexte. Validez-le ou videz-le d’abord.",
           true
         );
         return;
       }
 
-      openEditor(
-        `${kinds[kind]} — ${origin.article_name}`,
-        () => {
-          const quantity = field(
-            "edit-quantity",
-            "Quantité",
-            "number"
-          );
+      openEditor(`${kinds[kind]} — ${origin.article_name}`, () => {
+        const quantity = field("edit-quantity", "Quantité", "number");
+        quantity.min = "1";
+        quantity.max = String(origin.remaining_quantity);
+        quantity.step = "1";
+        quantity.value = String(origin.remaining_quantity);
+        quantity.required = true;
+      }, async () => {
+        const quantity = Number($("#edit-quantity").value);
 
-          quantity.min = "1";
-          quantity.max = String(origin.remaining_quantity);
-          quantity.step = "1";
-          quantity.value = String(origin.remaining_quantity);
-          quantity.required = true;
-        },
-        async () => {
-          const quantity = Number($("#edit-quantity").value);
+        if (
+          !Number.isSafeInteger(quantity) ||
+          quantity <= 0 ||
+          quantity > origin.remaining_quantity
+        ) throw new Error("Quantité invalide pour cette sortie.");
 
-          if (
-            !Number.isSafeInteger(quantity) ||
-            quantity <= 0 ||
-            quantity > origin.remaining_quantity
-          ) {
-            throw new Error(
-              "Quantité invalide pour cette sortie."
-            );
-          }
+        $(`input[name="context"][value="${origin.context}"]`).checked = true;
+        $("#cart-event").value = origin.event_id || "";
 
-          $(
-            `input[name="context"][value="${origin.context}"]`
-          ).checked = true;
+        state.cart.push({
+          article_id: origin.article_id,
+          lot_id: null,
+          kind,
+          quantity,
+          beneficiary: null,
+          origin_line_id: origin.origin_line_id
+        });
 
-          $("#cart-event").value = origin.event_id || "";
-
-          state.cart.push({
-            article_id: origin.article_id,
-            lot_id: null,
-            kind,
-            quantity,
-            beneficiary: null,
-            origin_line_id: origin.origin_line_id
-          });
-
-          if (!$("#cart-reason").value.trim()) {
-            $("#cart-reason").value =
-              "Retour ou incident sur matériel sorti";
-          }
-
-          $("#editor").close();
-          renderCart();
-          selectTab("cart");
-          message("Régularisation ajoutée au panier.");
+        if (!$("#cart-reason").value.trim()) {
+          $("#cart-reason").value = "Retour ou incident sur matériel sorti";
         }
-      );
+
+        $("#editor").close();
+        renderCart();
+        selectTab("cart");
+        message("Régularisation ajoutée au panier.");
+      });
     }
 
     function renderReturns() {
@@ -1659,51 +1339,27 @@
       list.replaceChildren();
 
       if (!state.data.outstanding.length) {
-        list.append(
-          element("p", "Aucun matériel restant à rendre.")
-        );
+        list.append(element("p", "Aucun matériel restant à rendre."));
       }
 
       for (const origin of state.data.outstanding) {
         const card = element("article", undefined, "card");
-
         card.append(
           element("h3", origin.article_name),
           element("p", kinds[origin.kind]),
-          element(
-            "p",
-            origin.event_name || "Inventaire — prêt hors événement"
-          ),
-          element(
-            "p",
-            `Restant : ${origin.remaining_quantity} ${origin.unit}`
-          )
+          element("p", origin.event_name || "Inventaire — prêt hors événement"),
+          element("p", `Restant : ${origin.remaining_quantity} ${origin.unit}`)
         );
 
         if (origin.beneficiary) {
-          card.append(
-            element(
-              "p",
-              `Bénéficiaire : ${origin.beneficiary}`
-            )
-          );
+          card.append(element("p", `Bénéficiaire : ${origin.beneficiary}`));
         }
 
         card.append(
-          button(
-            "Retour",
-            () => openSettlement(origin, "return")
-          ),
-          button(
-            "Perte",
-            () => openSettlement(origin, "loss")
-          ),
-          button(
-            "Casse",
-            () => openSettlement(origin, "breakage")
-          )
+          button("Retour", () => openSettlement(origin, "return")),
+          button("Perte", () => openSettlement(origin, "loss")),
+          button("Casse", () => openSettlement(origin, "breakage"))
         );
-
         list.append(card);
       }
     }
@@ -1718,14 +1374,10 @@
 
       for (const operation of state.data.operations) {
         const card = element("article", undefined, "card");
-
         card.append(
           element("h3", operation.event_name || "Inventaire"),
           element("p", operation.reason),
-          element(
-            "p",
-            `${dateTime(operation.created_at)} — ${operation.author}`
-          )
+          element("p", `${dateTime(operation.created_at)} — ${operation.author}`)
         );
 
         const lines = element("ul");
@@ -1733,16 +1385,12 @@
         for (const line of state.data.lines.filter(
           (item) => item.operation_id === operation.id
         )) {
-          lines.append(
-            element(
-              "li",
-              `${kinds[line.kind]} — ${line.article_name} — ` +
-              `${line.quantity} ${line.unit}` +
-              (line.lot_reference
-                ? ` — lot ${line.lot_reference}`
-                : "")
-            )
-          );
+          lines.append(element(
+            "li",
+            `${kinds[line.kind]} — ${line.article_name} — ` +
+            `${line.quantity} ${line.unit}` +
+            (line.lot_reference ? ` — lot ${line.lot_reference}` : "")
+          ));
         }
 
         card.append(lines);
@@ -1753,22 +1401,18 @@
       movements.replaceChildren();
 
       for (const item of state.data.history) {
-        movements.append(
-          element(
-            "li",
-            `${dateTime(item.created_at)} — ` +
-            `${item.movement_type === "entry" ? "Entrée" : "Sortie"} — ` +
-            `${item.article_name} — ${item.quantity} ${item.unit} — ` +
-            `${item.author} — ${item.reason}`
-          )
-        );
+        movements.append(element(
+          "li",
+          `${dateTime(item.created_at)} — ` +
+          `${item.movement_type === "entry" ? "Entrée" : "Sortie"} — ` +
+          `${item.article_name} — ${item.quantity} ${item.unit} — ` +
+          `${item.author} — ${item.reason}`
+        ));
       }
     }
 
     function render() {
-      $("#new-article").hidden =
-        state.member.role !== "admin";
-
+      $("#new-article").hidden = state.member.role !== "admin";
       fillEvents();
       renderStock();
       renderCart();
@@ -1778,7 +1422,6 @@
       syncControls();
     }
 
-    // Appelée avec state.busy déjà positionné à true.
     async function executePending() {
       if (!state.pending) return;
 
@@ -1786,28 +1429,17 @@
       let confirmed = false;
 
       try {
-        const result = await rpc(
-          pending.name,
-          pending.payload
-        );
+        const result = await rpc(pending.name, pending.payload);
 
         if (
           pending.name === "receive_new_lot" &&
           (!result?.lot_id || !result?.operation_id)
-        ) {
-          throw new ApiError(
-            "Résultat de réception inattendu."
-          );
-        }
+        ) throw new ApiError("Résultat de réception inattendu.");
 
         if (
           pending.name === "validate_stock_operation" &&
           typeof result !== "string"
-        ) {
-          throw new ApiError(
-            "Résultat de panier inattendu."
-          );
-        }
+        ) throw new ApiError("Résultat de panier inattendu.");
 
         confirmed = true;
         state.pending = null;
@@ -1819,7 +1451,6 @@
         }
 
         renderCart();
-
         await updateAfterWrite(
           pending.name === "receive_new_lot"
             ? "Lot créé et quantité reçue enregistrée."
@@ -1828,42 +1459,33 @@
       } catch (error) {
         if (confirmed) {
           message(
-            "Opération enregistrée. Actualisez l’affichage " +
-            "sans répéter l’opération.",
+            "Opération enregistrée. Actualisez sans répéter l’opération.",
             true
           );
           return;
         }
 
-        const uncertain =
-          !(error instanceof ApiError) ||
+        const uncertain = !(error instanceof ApiError) ||
           error.status === 0 ||
           error.status === 408 ||
           error.status >= 500;
 
-        // Après une première réponse incertaine, une erreur ultérieure
-        // ne suffit pas à conclure que l'opération initiale a échoué.
         if (uncertain || pending.uncertain) {
           pending.uncertain = true;
           state.pending = pending;
-
           message(
             error.message +
-            " Le résultat reste incertain : utilisez le bouton " +
-            "de vérification sans recharger la page.",
+            " Résultat incertain : utilisez le bouton de vérification " +
+            "sans recharger la page.",
             true
           );
         } else {
           state.pending = null;
-
           message(
-            error.message +
-            " La demande a été refusée. " +
-            (
-              pending.name === "validate_stock_operation"
-                ? "Le panier reste disponible pour correction."
-                : "Vous pouvez rouvrir le formulaire pour corriger la réception."
-            ),
+            error.message + " La demande a été refusée. " +
+            (pending.name === "validate_stock_operation"
+              ? "Le panier reste disponible pour correction."
+              : "Rouvrez le formulaire pour corriger la réception."),
             true
           );
         }
@@ -1872,7 +1494,6 @@
 
     async function retryPending() {
       if (!state.pending || state.busy) return;
-
       state.busy = true;
       syncControls();
 
@@ -1888,20 +1509,10 @@
       if (state.busy || state.pending) return;
 
       const reason = $("#cart-reason").value.trim();
+      const eventId = context() === "event" ? $("#cart-event").value : null;
 
-      const eventId = context() === "event"
-        ? $("#cart-event").value
-        : null;
-
-      if (
-        !state.cart.length ||
-        !reason ||
-        reason.length > 200
-      ) {
-        message(
-          "Ajoutez des lignes et un motif de 1 à 200 caractères.",
-          true
-        );
+      if (!state.cart.length || !reason || reason.length > 200) {
+        message("Ajoutez des lignes et un motif de 1 à 200 caractères.", true);
         return;
       }
 
@@ -1915,24 +1526,19 @@
         line.quantity <= 0 ||
         line.quantity > 2147483647
       )) {
-        message(
-          "Toutes les quantités doivent être des entiers positifs.",
-          true
-        );
+        message("Toutes les quantités doivent être des entiers positifs.", true);
         return;
       }
 
       if (state.cart.some((line) =>
-        article(line.article_id)?.category === "food" &&
-        !line.lot_id
+        article(line.article_id)?.category === "food" && !line.lot_id
       )) {
         message("Choisissez un lot pour chaque denrée.", true);
         return;
       }
 
       if (!confirm(
-        `Valider ${state.cart.length} ligne(s) ? ` +
-        "Cette action modifiera le stock."
+        `Valider ${state.cart.length} ligne(s) ? Cette action modifiera le stock.`
       )) return;
 
       try {
@@ -1945,8 +1551,7 @@
             p_context: context(),
             p_event_id: eventId || null,
             p_reason: reason,
-            p_source_operation_id:
-              context() === "event" ? state.source : null,
+            p_source_operation_id: context() === "event" ? state.source : null,
             p_lines: structuredClone(state.cart)
           }
         };
@@ -1961,40 +1566,32 @@
 
     $("#empty-cart").addEventListener("click", () => {
       if (state.busy || state.pending) return;
-
-      if (
-        state.cart.length &&
-        !confirm("Vider le panier ?")
-      ) return;
-
+      if (state.cart.length && !confirm("Vider le panier ?")) return;
       state.cart = [];
       state.source = null;
       renderCart();
     });
 
-    for (const radio of document.querySelectorAll(
-      'input[name="context"]'
-    )) {
+    for (const radio of document.querySelectorAll('input[name="context"]')) {
       radio.addEventListener("change", renderCart);
     }
 
     $("#cart-event").addEventListener("change", () => {
       if (state.cart.some((line) => line.origin_line_id)) {
         message(
-          "Les régularisations doivent conserver " +
-          "l’événement de leur sortie d’origine.",
+          "Les régularisations doivent conserver l’événement de leur origine.",
           true
         );
       }
     });
 
-    $("#search").addEventListener("input", renderStock);
+    $("#search").addEventListener("input", () => {
+      renderStock();
+      syncControls();
+    });
 
     for (const item of document.querySelectorAll("[data-tab]")) {
-      item.addEventListener(
-        "click",
-        () => selectTab(item.dataset.tab)
-      );
+      item.addEventListener("click", () => selectTab(item.dataset.tab));
     }
 
     $("#new-article").addEventListener("click", openArticle);
@@ -2011,7 +1608,6 @@
 
     $("#editor-form").addEventListener("submit", (event) => {
       event.preventDefault();
-
       task(async () => {
         await state.editorAction();
       });
@@ -2019,17 +1615,14 @@
 
     $("#refresh").addEventListener("click", async () => {
       if (state.busy) return;
-
       state.busy = true;
       syncControls();
 
       try {
         await load();
-
         message(
           state.pending
-            ? "Données actualisées. Vérifiez l’opération en attente " +
-              "avec son bouton."
+            ? "Données actualisées. Vérifiez l’opération en attente avec son bouton."
             : "Données actualisées."
         );
       } catch (error) {
@@ -2045,10 +1638,13 @@
       if (state.busy) return;
 
       state.busy = true;
-      $("#login-form button").disabled = true;
+      syncControls();
+      let accepted = false;
 
       try {
         checkConfiguration();
+        StockSession.configure(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+        StockSession.choose($("#remember").checked);
 
         const session = await rawRequest(
           "/auth/v1/token?grant_type=password",
@@ -2058,35 +1654,16 @@
           })
         );
 
-        setSession(session);
+        state.session = StockSession.accept(session);
+        accepted = true;
         $("#password").value = "";
 
-        const members = await api(
-          "/rest/v1/members?select=display_name,role,active" +
-          `&user_id=eq.${encodeURIComponent(state.session.userId)}`
-        );
-
-        if (
-          !Array.isArray(members) ||
-          members.length !== 1 ||
-          !members[0].active
-        ) {
-          throw new Error("Compte non autorisé.");
-        }
-
-        state.member = members[0];
-        await load();
-
-        $("#identity").textContent =
-          state.member.display_name;
-
-        $("#login-panel").hidden = true;
-        $("#workspace").hidden = false;
+        await openWorkspace();
         message("Connexion réussie.");
       } catch (error) {
         let revokeFailed = false;
 
-        if (state.session) {
+        if (accepted && state.session) {
           try {
             await rawRequest(
               "/auth/v1/logout?scope=local",
@@ -2096,25 +1673,25 @@
           } catch {
             revokeFailed = true;
           }
+
+          StockSession.clear();
         }
 
         state.session = null;
         state.member = null;
+        $("#workspace").hidden = true;
+        $("#login-panel").hidden = false;
 
         message(
           error.message +
-          (
-            revokeFailed
-              ? " Connexion locale effacée ; révocation côté " +
-                "service non confirmée."
-              : ""
-          ),
+          (revokeFailed
+            ? " Connexion locale effacée ; révocation côté service non confirmée."
+            : ""),
           true
         );
       } finally {
         $("#password").value = "";
         state.busy = false;
-        $("#login-form button").disabled = false;
         syncControls();
       }
     });
@@ -2122,21 +1699,16 @@
     $("#logout").addEventListener("click", async () => {
       if (state.busy || state.pending) return;
 
-      if (
-        state.cart.length &&
-        !confirm(
-          "La déconnexion abandonnera le panier non validé. Continuer ?"
-        )
-      ) return;
+      if (state.cart.length && !confirm(
+        "La déconnexion abandonnera le panier non validé. Continuer ?"
+      )) return;
 
       state.busy = true;
       syncControls();
-
       let revokeFailed = false;
 
       try {
         await ensureSession();
-
         await rawRequest(
           "/auth/v1/logout?scope=local",
           { method: "POST" },
@@ -2145,6 +1717,7 @@
       } catch {
         revokeFailed = true;
       } finally {
+        StockSession.clear();
         state.session = null;
         state.member = null;
         state.cart = [];
@@ -2153,12 +1726,8 @@
         state.data = emptyData();
 
         for (const selector of [
-          "#stock-list",
-          "#cart-list",
-          "#events-list",
-          "#returns-list",
-          "#operations-list",
-          "#movement-list"
+          "#stock-list", "#cart-list", "#events-list",
+          "#returns-list", "#operations-list", "#movement-list"
         ]) {
           $(selector).replaceChildren();
         }
@@ -2167,7 +1736,6 @@
         $("#cart-count").textContent = "0";
         $("#cart-reason").value = "";
         $("#cart-source").textContent = "";
-
         $("#workspace").hidden = true;
         $("#login-panel").hidden = false;
 
@@ -2176,13 +1744,55 @@
 
         message(
           revokeFailed
-            ? "Connexion locale effacée. Révocation côté " +
-              "service non confirmée."
+            ? "Connexion locale effacée. Révocation côté service non confirmée."
             : "Vous êtes déconnecté.",
           revokeFailed
         );
       }
     });
+
+    async function restoreConnection() {
+      state.busy = true;
+      syncControls();
+
+      try {
+        checkConfiguration();
+        StockSession.configure(SUPABASE_URL, SUPABASE_PUBLIC_KEY);
+
+        const saved = StockSession.restore();
+        if (!saved) return;
+
+        state.session = saved;
+        message("Restauration de la connexion…");
+        await openWorkspace();
+        message("Connexion restaurée.");
+      } catch (error) {
+        // Ne pas supprimer une session sauvegardée pour une panne réseau.
+        state.session = null;
+        state.member = null;
+        $("#workspace").hidden = true;
+        $("#login-panel").hidden = false;
+
+        message(
+          error.message +
+          " Rechargez pour réessayer ou reconnectez-vous.",
+          true
+        );
+      } finally {
+        state.busy = false;
+        syncControls();
+      }
+    }
+
+    setInterval(async () => {
+      if (!state.session || !state.member || state.busy || state.pending) return;
+
+      try {
+        await ensureSession();
+      } catch {
+        // L'action suivante affichera l'erreur si elle persiste.
+      }
+    }, 60000);
 
     window.addEventListener("beforeunload", (event) => {
       if (state.cart.length || state.pending) {
@@ -2192,6 +1802,7 @@
     });
 
     syncControls();
+    restoreConnection();
   </script>
 </body>
 </html>
