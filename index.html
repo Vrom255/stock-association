@@ -1,0 +1,2197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock de l’association</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #f3f5f7;
+      color: #182230;
+    }
+
+    header {
+      padding: 20px;
+      background: #164e63;
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    main {
+      width: min(100% - 24px, 1050px);
+      margin: 20px auto;
+    }
+
+    .panel, .card {
+      padding: 18px;
+      background: white;
+      border: 1px solid #d6dce2;
+      border-radius: 12px;
+    }
+
+    .panel { margin-bottom: 18px; }
+
+    .cards {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+      gap: 14px;
+    }
+
+    h2, h3 { margin-top: 0; }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input, select, button {
+      font: inherit;
+      border-radius: 8px;
+      min-height: 44px;
+      padding: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #6b7280;
+      background: white;
+      color: #182230;
+    }
+
+    input[type="radio"] {
+      width: 20px;
+      min-height: 20px;
+      vertical-align: middle;
+    }
+
+    button {
+      border: none;
+      background: #164e63;
+      color: white;
+      cursor: pointer;
+    }
+
+    button.secondary { background: #52606d; }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    :focus-visible {
+      outline: 3px solid #0284c7;
+      outline-offset: 2px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .row > * { flex: 1 1 140px; }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    nav button[aria-pressed="true"] {
+      background: #087f5b;
+    }
+
+    .muted { color: #52606d; }
+    .warning { color: #92400e; }
+
+    .notice {
+      padding: 12px;
+      background: #fff8df;
+      border: 1px solid #e4c46a;
+      border-radius: 8px;
+    }
+
+    #message {
+      overflow-wrap: anywhere;
+      white-space: pre-line;
+    }
+
+    #message[data-error="true"] { color: #b91c1c; }
+    #message[data-error="false"] { color: #166534; }
+
+    ul { padding-left: 22px; }
+    li { margin-bottom: 8px; }
+
+    dialog {
+      width: min(94vw, 580px);
+      max-height: 90vh;
+      overflow: auto;
+      padding: 22px;
+      border: 1px solid #d6dce2;
+      border-radius: 12px;
+    }
+
+    dialog::backdrop {
+      background: rgb(0 0 0 / 45%);
+    }
+
+    .card p, li { overflow-wrap: anywhere; }
+    .spaced { margin-top: 16px; }
+
+    .card button {
+      margin-right: 6px;
+      margin-top: 8px;
+    }
+
+    .context {
+      margin: 0;
+      padding: 12px;
+      border: 1px solid #d6dce2;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Stock de l’association</h1>
+    <p>Matériel, denrées, événements et prêts</p>
+  </header>
+
+  <main>
+    <p class="notice">
+      Version en cours de validation : les opérations enregistrées
+      modifient réellement votre base.
+    </p>
+
+    <section id="login-panel" class="panel">
+      <h2>Connexion</h2>
+
+      <form id="login-form">
+        <label for="email">Adresse e-mail</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="username"
+          required
+        >
+
+        <label for="password">Mot de passe</label>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button class="spaced" type="submit">
+          Se connecter
+        </button>
+      </form>
+
+      <p class="muted">
+        Cette version conserve la session dans la page uniquement.
+        Un rechargement nécessite une nouvelle connexion.
+      </p>
+    </section>
+
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <div id="workspace" hidden>
+      <section class="panel row">
+        <strong id="identity"></strong>
+        <button id="refresh" type="button">Actualiser</button>
+        <button id="logout" type="button" class="secondary">
+          Se déconnecter
+        </button>
+      </section>
+
+      <nav aria-label="Navigation principale">
+        <button type="button" data-tab="stock" aria-pressed="true">
+          Stock
+        </button>
+        <button type="button" data-tab="cart" aria-pressed="false">
+          Panier <span id="cart-count">0</span>
+        </button>
+        <button type="button" data-tab="events" aria-pressed="false">
+          Événements
+        </button>
+        <button type="button" data-tab="returns" aria-pressed="false">
+          Utilisations et prêts
+        </button>
+        <button type="button" data-tab="history" aria-pressed="false">
+          Historique
+        </button>
+      </nav>
+
+      <section id="tab-stock" class="panel">
+        <div class="row">
+          <h2>Stock</h2>
+          <button id="new-article" type="button">+ Article</button>
+        </div>
+
+        <label for="search">Rechercher</label>
+        <input id="search" type="search" placeholder="Café, verres…">
+
+        <p class="muted">
+          Ajouter au panier ne retire ni ne réserve le stock.
+          Les dates ne bloquent pas les sorties.
+        </p>
+
+        <div id="stock-list" class="cards"></div>
+      </section>
+
+      <section id="tab-cart" class="panel" hidden>
+        <h2>Panier</h2>
+
+        <fieldset class="context">
+          <legend>Contexte</legend>
+          <div class="row">
+            <label>
+              <input
+                type="radio"
+                name="context"
+                value="inventory"
+                checked
+              >
+              Inventaire
+            </label>
+            <label>
+              <input type="radio" name="context" value="event">
+              Événement
+            </label>
+          </div>
+        </fieldset>
+
+        <div id="event-choice" hidden>
+          <label for="cart-event">Événement</label>
+          <div class="row">
+            <select id="cart-event"></select>
+            <button id="new-event" type="button">
+              + Événement
+            </button>
+          </div>
+        </div>
+
+        <label for="cart-reason">Motif commun au panier</label>
+        <input
+          id="cart-reason"
+          maxlength="200"
+          placeholder="Exemple : préparation de la buvette"
+        >
+
+        <p id="cart-source" class="muted"></p>
+        <div id="cart-list" class="cards spaced"></div>
+
+        <div class="row spaced">
+          <button id="validate-cart" type="button">
+            Valider le panier
+          </button>
+          <button id="empty-cart" type="button" class="secondary">
+            Vider le panier
+          </button>
+        </div>
+      </section>
+
+      <section id="tab-events" class="panel" hidden>
+        <div class="row">
+          <h2>Événements</h2>
+          <button id="new-event-list" type="button">
+            + Événement
+          </button>
+        </div>
+
+        <p class="muted">
+          Une préparation reprise reste un brouillon.
+          Vérifiez les quantités, les lots et les bénéficiaires.
+        </p>
+
+        <div id="events-list" class="cards"></div>
+      </section>
+
+      <section id="tab-returns" class="panel" hidden>
+        <h2>Matériel restant à rendre</h2>
+        <p class="muted">
+          Les retours, pertes et casses conservent
+          le contexte de leur sortie d’origine.
+        </p>
+        <div id="returns-list" class="cards"></div>
+      </section>
+
+      <section id="tab-history" class="panel" hidden>
+        <h2>Paniers validés</h2>
+        <div id="operations-list" class="cards"></div>
+
+        <h2 class="spaced">Derniers mouvements du disponible</h2>
+        <p class="muted">
+          Une casse pendant un prêt clôture une partie du prêt,
+          sans produire une deuxième sortie du disponible.
+        </p>
+        <ul id="movement-list"></ul>
+      </section>
+
+      <section id="pending-panel" class="notice" hidden>
+        <h2>Opération à vérifier</h2>
+        <p id="pending-description"></p>
+        <p>
+          Le résultat est incertain. Ne fermez pas et ne rechargez
+          pas cette page. Réessayez la même demande pour éviter
+          un doublon.
+        </p>
+        <button id="retry" type="button">
+          Vérifier ou réessayer
+        </button>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="editor">
+    <h2 id="editor-title"></h2>
+
+    <form id="editor-form">
+      <div id="editor-fields"></div>
+
+      <div class="row spaced">
+        <button id="editor-save" type="submit">Enregistrer</button>
+        <button
+          id="editor-cancel"
+          type="button"
+          class="secondary"
+        >
+          Annuler
+        </button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    "use strict";
+
+    // URL du projet sans /rest/v1 et clé publique uniquement.
+    const SUPABASE_URL = "https://vvztixmaprgyskyukjzf.supabase.co";
+    const SUPABASE_PUBLIC_KEY = "sb_publishable_s5Av7rubmMRH-HdTt9kxmA_X0G_eopj";
+
+    const $ = (selector) => document.querySelector(selector);
+
+    const kinds = {
+      purchase: "Achat / réception",
+      consumption: "Consommation",
+      internal_use: "Utilisation interne",
+      loan: "Prêt à un tiers",
+      return: "Retour",
+      loss: "Perte",
+      breakage: "Casse",
+      adjustment_in: "Correction positive",
+      adjustment_out: "Correction négative"
+    };
+
+    function emptyData() {
+      return {
+        articles: [],
+        lots: [],
+        events: [],
+        operations: [],
+        lines: [],
+        outstanding: [],
+        history: []
+      };
+    }
+
+    const state = {
+      session: null,
+      member: null,
+      data: emptyData(),
+      cart: [],
+      source: null,
+      pending: null,
+      busy: false,
+      editorAction: null,
+      refreshPromise: null
+    };
+
+    class ApiError extends Error {
+      constructor(message, status = 0) {
+        super(message);
+        this.status = status;
+      }
+    }
+
+    function message(text, error = false) {
+      $("#message").textContent = text;
+      $("#message").dataset.error = String(error);
+    }
+
+    function element(tag, text, className) {
+      const item = document.createElement(tag);
+      if (text !== undefined) item.textContent = text;
+      if (className) item.className = className;
+      return item;
+    }
+
+    function button(text, action) {
+      const item = element("button", text);
+      item.type = "button";
+      item.addEventListener("click", action);
+      return item;
+    }
+
+    function normalized(value) {
+      return value
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleLowerCase("fr");
+    }
+
+    function formatDate(value) {
+      if (!value) return "Sans date";
+      const [year, month, day] = value.split("-");
+      return `${day}/${month}/${year}`;
+    }
+
+    function localDate(value) {
+      return [
+        value.getFullYear(),
+        String(value.getMonth() + 1).padStart(2, "0"),
+        String(value.getDate()).padStart(2, "0")
+      ].join("-");
+    }
+
+    function dateTime(value) {
+      return new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(new Date(value));
+    }
+
+    function article(id) {
+      return state.data.articles.find((item) => item.id === id);
+    }
+
+    function context() {
+      return $('input[name="context"]:checked').value;
+    }
+
+    function post(body) {
+      return {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      };
+    }
+
+    function checkConfiguration() {
+      const url = new URL(SUPABASE_URL);
+
+      if (
+        SUPABASE_URL.includes("VOTRE-PROJET") ||
+        SUPABASE_PUBLIC_KEY === "VOTRE_CLE_PUBLIQUE" ||
+        SUPABASE_PUBLIC_KEY.startsWith("sb_secret_") ||
+        url.protocol !== "https:" ||
+        (url.pathname !== "/" && url.pathname !== "")
+      ) {
+        throw new Error(
+          "Vérifiez l’URL du projet sans /rest/v1 et sa clé publique."
+        );
+      }
+    }
+
+    async function rawRequest(path, options = {}, token = null) {
+      let response;
+      let text;
+
+      try {
+        response = await fetch(
+          SUPABASE_URL.replace(/\/+$/, "") + path,
+          {
+            ...options,
+            headers: {
+              apikey: SUPABASE_PUBLIC_KEY,
+              ...(token
+                ? { Authorization: `Bearer ${token}` }
+                : {}),
+              ...options.headers
+            },
+            cache: "no-store",
+            signal: AbortSignal.timeout(15000)
+          }
+        );
+
+        text = await response.text();
+      } catch {
+        throw new ApiError(
+          "Service inaccessible ou réponse trop lente."
+        );
+      }
+
+      let data = null;
+
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        throw new ApiError(
+          "Réponse du service illisible.",
+          response.ok ? 0 : response.status
+        );
+      }
+
+      if (!response.ok) {
+        let explanation =
+          `Demande refusée — code ${response.status}.`;
+
+        if (data?.code === "P0001") {
+          explanation = data.message;
+        } else if (data?.code === "23505") {
+          explanation =
+            "Cette référence existe déjà. Pour un lot existant, " +
+            "utilisez Achat / réception dans le panier.";
+        } else if (response.status === 429) {
+          explanation =
+            "Trop de demandes. Attendez avant de réessayer.";
+        } else if (path.includes("grant_type=password")) {
+          explanation =
+            "Connexion refusée. Vérifiez vos identifiants.";
+        } else if (path.includes("grant_type=refresh_token")) {
+          explanation =
+            "La session n’a pas pu être renouvelée.";
+        } else if (response.status === 401) {
+          explanation =
+            "Session invalide. Une reconnexion est nécessaire.";
+        }
+
+        throw new ApiError(explanation, response.status);
+      }
+
+      return data;
+    }
+
+    function setSession(data) {
+      if (
+        !data?.access_token ||
+        !data?.refresh_token ||
+        !data?.user?.id
+      ) {
+        throw new Error("Réponse de connexion inattendue.");
+      }
+
+      const expiry = Number(
+        data.expires_at ??
+        Math.floor(Date.now() / 1000) + Number(data.expires_in)
+      );
+
+      if (!Number.isFinite(expiry)) {
+        throw new Error("Expiration de session invalide.");
+      }
+
+      state.session = {
+        token: data.access_token,
+        refresh: data.refresh_token,
+        expiry,
+        userId: data.user.id
+      };
+    }
+
+    async function ensureSession() {
+      if (!state.session) {
+        throw new Error("Connectez-vous.");
+      }
+
+      if (state.refreshPromise) {
+        return state.refreshPromise;
+      }
+
+      if (state.session.expiry > Date.now() / 1000 + 90) {
+        return;
+      }
+
+      state.refreshPromise = (async () => {
+        const renewed = await rawRequest(
+          "/auth/v1/token?grant_type=refresh_token",
+          post({ refresh_token: state.session.refresh })
+        );
+
+        setSession(renewed);
+      })();
+
+      try {
+        await state.refreshPromise;
+      } finally {
+        state.refreshPromise = null;
+      }
+    }
+
+    async function api(path, options = {}) {
+      await ensureSession();
+
+      return rawRequest(
+        path,
+        options,
+        state.session.token
+      );
+    }
+
+    function rpc(name, body = {}) {
+      return api(`/rest/v1/rpc/${name}`, post(body));
+    }
+
+    function selectTab(name) {
+      for (const item of document.querySelectorAll("[data-tab]")) {
+        item.setAttribute(
+          "aria-pressed",
+          String(item.dataset.tab === name)
+        );
+      }
+
+      for (const item of document.querySelectorAll('[id^="tab-"]')) {
+        item.hidden = item.id !== `tab-${name}`;
+      }
+    }
+
+    function syncControls() {
+      const blocked = state.busy || Boolean(state.pending);
+
+      for (const item of document.querySelectorAll(
+        "#workspace button, #workspace input, #workspace select"
+      )) {
+        if (item.matches("[data-tab], #search")) continue;
+        item.disabled = blocked;
+      }
+
+      $("#refresh").disabled = state.busy;
+      $("#retry").disabled = state.busy;
+      $("#pending-panel").hidden = !state.pending;
+
+      $("#pending-description").textContent = state.pending
+        ? state.pending.label
+        : "";
+
+      for (const item of document.querySelectorAll(
+        "#editor input, #editor select, #editor button"
+      )) {
+        item.disabled = state.busy;
+      }
+
+      if (!state.busy) {
+        const mode = $("#edit-lot-mode");
+        const dateType = $("#edit-date-type");
+
+        if (mode && $("#edit-received")) {
+          $("#edit-received").disabled =
+            mode.value === "without";
+        }
+
+        if (dateType && $("#edit-date")) {
+          $("#edit-date").disabled = !dateType.value;
+        }
+      }
+    }
+
+    async function load() {
+      const data = await rpc("get_stock_workspace");
+
+      for (const key of [
+        "articles", "lots", "events", "operations",
+        "lines", "outstanding", "history"
+      ]) {
+        if (!Array.isArray(data?.[key])) {
+          throw new Error(
+            "Réponse de l’espace stock inattendue."
+          );
+        }
+      }
+
+      state.data = data;
+      render();
+    }
+
+    async function task(action) {
+      if (state.busy || state.pending) return;
+
+      state.busy = true;
+      syncControls();
+
+      try {
+        await action();
+      } catch (error) {
+        message(
+          error.message +
+          " Si une création semble incertaine, actualisez " +
+          "avant de la répéter.",
+          true
+        );
+      } finally {
+        state.busy = false;
+        syncControls();
+      }
+    }
+
+    function field(id, label, type = "text") {
+      const wrapper = element("div");
+      const caption = element("label", label);
+      caption.htmlFor = id;
+
+      const input = element("input");
+      input.id = id;
+      input.type = type;
+
+      wrapper.append(caption, input);
+      $("#editor-fields").append(wrapper);
+
+      return input;
+    }
+
+    function choice(id, label, options) {
+      const wrapper = element("div");
+      const caption = element("label", label);
+      caption.htmlFor = id;
+
+      const select = element("select");
+      select.id = id;
+
+      for (const [value, text] of options) {
+        const option = element("option", text);
+        option.value = value;
+        select.append(option);
+      }
+
+      wrapper.append(caption, select);
+      $("#editor-fields").append(wrapper);
+
+      return select;
+    }
+
+    function openEditor(title, build, action) {
+      if (state.busy || state.pending) return;
+
+      $("#editor-title").textContent = title;
+      $("#editor-fields").replaceChildren();
+      $("#editor-save").textContent = "Enregistrer";
+
+      build();
+      state.editorAction = action;
+      syncControls();
+      $("#editor").showModal();
+    }
+
+    async function updateAfterWrite(text) {
+      try {
+        await load();
+        message(text);
+      } catch {
+        message(
+          text +
+          " Actualisation impossible : cliquez sur Actualiser " +
+          "sans répéter l’opération.",
+          true
+        );
+      }
+    }
+
+    function lotOptions(articleId, availableOnly = false) {
+      return state.data.lots
+        .filter((item) =>
+          item.article_id === articleId &&
+          (!availableOnly || item.quantity > 0)
+        )
+        .sort((a, b) =>
+          (a.expiry_date ?? "9999-12-31")
+            .localeCompare(b.expiry_date ?? "9999-12-31") ||
+          a.reference.localeCompare(b.reference)
+        );
+    }
+
+    function newRequestId() {
+      if (!globalThis.crypto?.randomUUID) {
+        throw new Error(
+          "Utilisez un navigateur récent en contexte local ou HTTPS."
+        );
+      }
+
+      return crypto.randomUUID();
+    }
+
+    function openArticle() {
+      openEditor("Créer un article", () => {
+        const name = field("edit-name", "Nom");
+        name.required = true;
+        name.maxLength = 150;
+
+        choice("edit-category", "Catégorie", [
+          ["equipment", "Matériel"],
+          ["food", "Denrées alimentaires"]
+        ]);
+
+        const unit = field("edit-unit", "Unité");
+        unit.required = true;
+        unit.maxLength = 80;
+
+        const minimum = field(
+          "edit-minimum",
+          "Seuil de stock bas",
+          "number"
+        );
+
+        minimum.min = "0";
+        minimum.step = "1";
+        minimum.value = "0";
+        minimum.required = true;
+      }, async () => {
+        await rpc("create_article", {
+          p_name: $("#edit-name").value.trim(),
+          p_category: $("#edit-category").value,
+          p_unit: $("#edit-unit").value.trim(),
+          p_minimum_stock: Number($("#edit-minimum").value)
+        });
+
+        $("#editor").close();
+        await updateAfterWrite("Article créé.");
+      });
+    }
+
+    function openLot(item) {
+      openEditor(`Nouveau lot — ${item.name}`, () => {
+        choice("edit-lot-mode", "Que souhaitez-vous faire ?", [
+          ["receive", "Créer le lot et recevoir une quantité"],
+          ["without", "Créer le lot sans réception"]
+        ]);
+
+        const reference = field(
+          "edit-reference",
+          "Référence interne du nouveau lot"
+        );
+
+        reference.required = true;
+        reference.maxLength = 100;
+
+        const type = choice(
+          "edit-date-type",
+          "Type de date",
+          [
+            ["", "Sans date applicable"],
+            ["DLC", "DLC"],
+            ["DDM", "DDM"]
+          ]
+        );
+
+        const date = field("edit-date", "Date", "date");
+
+        const quantity = field(
+          "edit-received",
+          `Quantité reçue — ${item.unit}`,
+          "number"
+        );
+
+        quantity.min = "1";
+        quantity.max = "2147483647";
+        quantity.step = "1";
+
+        const reason = field(
+          "edit-receipt-reason",
+          "Motif de réception"
+        );
+
+        reason.maxLength = 200;
+        reason.value = "Achat / réception";
+
+        $("#editor-fields").append(
+          element(
+            "p",
+            "Avec réception : le lot et l’entrée de stock sont " +
+            "enregistrés ensemble, dans le contexte Inventaire.",
+            "muted"
+          )
+        );
+
+        function update() {
+          const receive =
+            $("#edit-lot-mode").value === "receive";
+
+          quantity.parentElement.hidden = !receive;
+          quantity.required = receive;
+          quantity.disabled = !receive;
+
+          reason.parentElement.hidden = !receive;
+          reason.required = receive;
+
+          date.disabled = !type.value;
+          date.required = Boolean(type.value);
+          if (!type.value) date.value = "";
+
+          $("#editor-save").textContent = receive
+            ? "Enregistrer le lot et la réception"
+            : "Créer le lot sans réception";
+        }
+
+        $("#edit-lot-mode").addEventListener("change", update);
+        type.addEventListener("change", update);
+        update();
+      }, async () => {
+        const reference = $("#edit-reference").value.trim();
+        const type = $("#edit-date-type").value || null;
+        const date = type ? $("#edit-date").value : null;
+
+        if (!reference || (type && !date)) {
+          throw new Error("Vérifiez la référence et la date.");
+        }
+
+        if ($("#edit-lot-mode").value === "without") {
+          await rpc("create_lot", {
+            p_article_id: item.id,
+            p_reference: reference,
+            p_date_type: type,
+            p_expiry_date: date
+          });
+
+          $("#editor").close();
+
+          await updateAfterWrite(
+            "Lot créé sans quantité. Il est disponible " +
+            "dans le choix des lots du panier."
+          );
+
+          return;
+        }
+
+        const quantity = Number($("#edit-received").value);
+        const reason = $("#edit-receipt-reason").value.trim();
+
+        if (
+          !Number.isSafeInteger(quantity) ||
+          quantity <= 0 ||
+          quantity > 2147483647 ||
+          !reason
+        ) {
+          throw new Error(
+            "Indiquez une quantité entière positive et un motif."
+          );
+        }
+
+        if (!confirm(
+          `Créer ${reference} et recevoir ${quantity} ${item.unit} ` +
+          `de ${item.name} ?`
+        )) return;
+
+        state.pending = {
+          name: "receive_new_lot",
+          label: `Réception de ${item.name}, lot ${reference}.`,
+          uncertain: false,
+          payload: {
+            p_request_id: newRequestId(),
+            p_article_id: item.id,
+            p_reference: reference,
+            p_date_type: type,
+            p_expiry_date: date,
+            p_quantity: quantity,
+            p_reason: reason
+          }
+        };
+
+        $("#editor").close();
+
+        // task() détient déjà le verrou de l'interface.
+        await executePending();
+      });
+    }
+
+    function openEvent() {
+      openEditor("Créer un événement", () => {
+        const name = field("edit-name", "Nom");
+        name.required = true;
+        name.maxLength = 150;
+
+        field("edit-event-date", "Date", "date");
+        field("edit-notes", "Notes").maxLength = 2000;
+      }, async () => {
+        const id = await rpc("create_event", {
+          p_name: $("#edit-name").value.trim(),
+          p_event_date: $("#edit-event-date").value || null,
+          p_notes: $("#edit-notes").value.trim() || null
+        });
+
+        $("#editor").close();
+        await updateAfterWrite("Événement créé.");
+        $("#cart-event").value = id;
+      });
+    }
+
+    function allowedKinds(item) {
+      const options = [
+        ["purchase", kinds.purchase],
+        ["consumption", kinds.consumption],
+        ["loss", kinds.loss],
+        ["breakage", kinds.breakage]
+      ];
+
+      if (item.category === "equipment") {
+        options.push(["loan", kinds.loan]);
+
+        if (context() === "event") {
+          options.push(["internal_use", kinds.internal_use]);
+        }
+      }
+
+      if (
+        context() === "inventory" &&
+        state.member.role === "admin"
+      ) {
+        options.push(
+          ["adjustment_in", kinds.adjustment_in],
+          ["adjustment_out", kinds.adjustment_out]
+        );
+      }
+
+      return options;
+    }
+
+    function openCartLine(item, index = null) {
+      const existing = index === null ? null : state.cart[index];
+
+      if (existing?.origin_line_id) {
+        message(
+          "La quantité de cette régularisation se modifie directement " +
+          "dans le panier. Pour changer Retour / Perte / Casse, " +
+          "retirez la ligne et utilisez la sortie d’origine."
+        );
+        return;
+      }
+
+      openEditor(
+        `${existing ? "Modifier" : "Ajouter"} — ${item.name}`,
+        () => {
+          const options = allowedKinds(item);
+
+          if (
+            existing &&
+            !options.some(([value]) => value === existing.kind)
+          ) {
+            options.push([existing.kind, kinds[existing.kind]]);
+          }
+
+          const type = choice(
+            "edit-kind",
+            "Opération",
+            options
+          );
+
+          type.value = existing?.kind ??
+            (context() === "event"
+              ? item.category === "food"
+                ? "consumption"
+                : "internal_use"
+              : "purchase");
+
+          const quantity = field(
+            "edit-quantity",
+            `Quantité — ${item.unit}`,
+            "number"
+          );
+
+          quantity.min = "1";
+          quantity.max = "2147483647";
+          quantity.step = "1";
+          quantity.value = String(existing?.quantity ?? 1);
+          quantity.required = true;
+
+          if (item.category === "food") {
+            const lots = lotOptions(item.id);
+
+            const select = choice(
+              "edit-lot",
+              "Lot",
+              [
+                ["", "Choisir un lot"],
+                ...lots.map((lot) => [
+                  lot.id,
+                  `${lot.reference} — disponible ${lot.quantity} — ` +
+                  (lot.expiry_date
+                    ? `${lot.date_type} ${formatDate(lot.expiry_date)}`
+                    : "Sans date")
+                ])
+              ]
+            );
+
+            select.required = true;
+
+            if (existing) {
+              select.value = existing.lot_id || "";
+            } else {
+              select.value =
+                lotOptions(item.id, true)[0]?.id ??
+                lots[0]?.id ??
+                "";
+            }
+
+            $("#editor-fields").append(
+              element(
+                "p",
+                "La date n’interdit pas la sortie. Pour utiliser " +
+                "plusieurs lots, ajoutez une ligne par lot.",
+                "muted"
+              )
+            );
+          }
+
+          const beneficiary = field(
+            "edit-beneficiary",
+            "Bénéficiaire du prêt"
+          );
+
+          beneficiary.maxLength = 150;
+          beneficiary.value = existing?.beneficiary ?? "";
+
+          function updateBeneficiary() {
+            beneficiary.parentElement.hidden =
+              type.value !== "loan";
+            beneficiary.required = type.value === "loan";
+          }
+
+          type.addEventListener("change", updateBeneficiary);
+          updateBeneficiary();
+        },
+        async () => {
+          const kind = $("#edit-kind").value;
+          const quantity = Number($("#edit-quantity").value);
+
+          const lotId = item.category === "food"
+            ? $("#edit-lot").value || null
+            : null;
+
+          const beneficiary = kind === "loan"
+            ? $("#edit-beneficiary").value.trim()
+            : null;
+
+          if (
+            !Number.isSafeInteger(quantity) ||
+            quantity <= 0 ||
+            quantity > 2147483647
+          ) {
+            throw new Error(
+              "La quantité doit être un entier positif."
+            );
+          }
+
+          if (item.category === "food" && !lotId) {
+            throw new Error("Choisissez un lot.");
+          }
+
+          if (kind === "loan" && !beneficiary) {
+            throw new Error("Indiquez le bénéficiaire du prêt.");
+          }
+
+          if (
+            kind === "internal_use" &&
+            context() !== "event"
+          ) {
+            throw new Error(
+              "L’utilisation interne nécessite un événement."
+            );
+          }
+
+          const line = {
+            article_id: item.id,
+            lot_id: lotId,
+            kind,
+            quantity,
+            beneficiary,
+            origin_line_id: null
+          };
+
+          if (index === null) {
+            state.cart.push(line);
+          } else {
+            state.cart[index] = line;
+          }
+
+          $("#editor").close();
+          renderCart();
+
+          message(
+            existing
+              ? "Ligne du panier modifiée."
+              : `${item.name} ajouté au panier.`
+          );
+        }
+      );
+    }
+
+    function renderStock() {
+      const list = $("#stock-list");
+      list.replaceChildren();
+
+      const query = normalized($("#search").value.trim());
+
+      const items = state.data.articles.filter((item) =>
+        item.active &&
+        normalized(`${item.name} ${item.unit}`).includes(query)
+      );
+
+      if (!items.length) {
+        list.append(element("p", "Aucun article à afficher."));
+      }
+
+      const today = new Date();
+      const near = new Date(today);
+      near.setDate(near.getDate() + 30);
+
+      for (const item of items) {
+        const card = element("article", undefined, "card");
+
+        card.append(
+          element("h3", item.name),
+          element(
+            "p",
+            `Disponible : ${item.available_quantity} ${item.unit}`
+          )
+        );
+
+        if (item.category === "equipment") {
+          card.append(
+            element("p", `En utilisation : ${item.in_use_quantity}`),
+            element("p", `En prêt : ${item.loan_quantity}`),
+            element("p", `Total suivi : ${item.total_quantity}`)
+          );
+        }
+
+        if (item.available_quantity < item.minimum_stock) {
+          card.append(
+            element("p", "Stock bas.", "warning")
+          );
+        }
+
+        if (item.category === "food") {
+          const ul = element("ul");
+
+          for (const lot of lotOptions(item.id, true)) {
+            let warning = "";
+
+            if (lot.expiry_date) {
+              if (lot.expiry_date < localDate(today)) {
+                warning = " — date dépassée";
+              } else if (lot.expiry_date <= localDate(near)) {
+                warning = " — date proche";
+              }
+            }
+
+            ul.append(
+              element(
+                "li",
+                `${lot.reference} : ${lot.quantity} — ` +
+                (lot.expiry_date
+                  ? `${lot.date_type} ${formatDate(lot.expiry_date)}`
+                  : "Sans date") +
+                warning,
+                warning ? "warning" : ""
+              )
+            );
+          }
+
+          card.append(
+            ul,
+            button("+ Lot / réception", () => openLot(item))
+          );
+        }
+
+        card.append(
+          button(
+            "Ajouter au panier",
+            () => openCartLine(item)
+          )
+        );
+
+        list.append(card);
+      }
+    }
+
+    function renderCart() {
+      $("#cart-count").textContent = state.cart.length;
+      $("#event-choice").hidden = context() !== "event";
+
+      $("#cart-source").textContent = state.source
+        ? "Ce panier reprend une préparation précédente."
+        : "";
+
+      const list = $("#cart-list");
+      list.replaceChildren();
+
+      if (!state.cart.length) {
+        list.append(element("p", "Votre panier est vide."));
+      }
+
+      state.cart.forEach((line, index) => {
+        const item = article(line.article_id);
+        const card = element("article", undefined, "card");
+
+        card.append(
+          element("h3", item?.name ?? "Article indisponible"),
+          element("p", kinds[line.kind])
+        );
+
+        if (!item?.active && !line.origin_line_id) {
+          card.append(
+            element(
+              "p",
+              "Article désactivé : retirez cette ligne.",
+              "warning"
+            )
+          );
+        }
+
+        if (
+          line.kind === "internal_use" &&
+          context() !== "event"
+        ) {
+          card.append(
+            element(
+              "p",
+              "Cette utilisation nécessite un événement.",
+              "warning"
+            )
+          );
+        }
+
+        if (line.origin_line_id) {
+          card.append(
+            element(
+              "p",
+              "Régularisation liée à une sortie d’origine.",
+              "muted"
+            )
+          );
+        }
+
+        if (line.beneficiary) {
+          card.append(
+            element(
+              "p",
+              `Bénéficiaire : ${line.beneficiary}`
+            )
+          );
+        }
+
+        const label = element(
+          "label",
+          `Quantité — ${item?.unit ?? "unité"}`
+        );
+
+        const input = element("input");
+        input.type = "number";
+        input.min = "1";
+        input.max = "2147483647";
+        input.step = "1";
+        input.value = line.quantity;
+        input.setAttribute(
+          "aria-label",
+          `Quantité de ${item?.name ?? "l’article"}`
+        );
+
+        input.addEventListener("input", () => {
+          line.quantity = Number(input.value);
+        });
+
+        card.append(label, input);
+
+        if (item?.category === "food") {
+          const select = element("select");
+
+          select.setAttribute(
+            "aria-label",
+            `Lot de ${item.name}`
+          );
+
+          const empty = element("option", "Choisir un lot");
+          empty.value = "";
+          select.append(empty);
+
+          for (const lot of lotOptions(item.id)) {
+            const option = element(
+              "option",
+              `${lot.reference} — disponible ${lot.quantity}`
+            );
+
+            option.value = lot.id;
+            select.append(option);
+          }
+
+          select.value = line.lot_id || "";
+
+          select.addEventListener("change", () => {
+            line.lot_id = select.value || null;
+          });
+
+          card.append(element("label", "Lot"), select);
+        }
+
+        if (item && !line.origin_line_id) {
+          card.append(
+            button(
+              "Modifier",
+              () => openCartLine(item, index)
+            )
+          );
+        }
+
+        card.append(
+          button("Retirer", () => {
+            if (state.busy || state.pending) return;
+            state.cart.splice(index, 1);
+            renderCart();
+          })
+        );
+
+        list.append(card);
+      });
+
+      syncControls();
+    }
+
+    function fillEvents() {
+      const select = $("#cart-event");
+      const previous = select.value;
+      select.replaceChildren();
+
+      const empty = element("option", "Choisir un événement");
+      empty.value = "";
+      select.append(empty);
+
+      for (const event of state.data.events.filter(
+        (item) => !item.archived
+      )) {
+        const option = element("option", event.name);
+        option.value = event.id;
+        select.append(option);
+      }
+
+      select.value = previous;
+    }
+
+    function prepareFrom(operation) {
+      if (state.busy || state.pending) return;
+
+      if (
+        state.cart.length &&
+        !confirm("Remplacer le panier actuel ?")
+      ) return;
+
+      const eligible = state.data.lines.filter((line) =>
+        line.operation_id === operation.id &&
+        ["consumption", "internal_use", "loan"].includes(line.kind)
+      );
+
+      state.cart = eligible.map((line) => ({
+        article_id: line.article_id,
+        lot_id: line.category === "food"
+          ? lotOptions(line.article_id, true)[0]?.id ?? null
+          : null,
+        kind: line.kind,
+        quantity: line.quantity,
+        beneficiary: line.beneficiary,
+        origin_line_id: null
+      }));
+
+      state.source = operation.id;
+
+      $('input[name="context"][value="event"]').checked = true;
+      $("#cart-event").value = "";
+      $("#cart-reason").value =
+        `Préparation reprise : ${operation.reason}`.slice(0, 200);
+
+      renderCart();
+      selectTab("cart");
+
+      message(
+        "Préparation copiée. Choisissez l’événement cible et " +
+        "vérifiez les articles, quantités, lots et bénéficiaires."
+      );
+    }
+
+    function renderEvents() {
+      const list = $("#events-list");
+      list.replaceChildren();
+
+      if (!state.data.events.length) {
+        list.append(
+          element("p", "Aucun événement pour le moment.")
+        );
+      }
+
+      for (const event of state.data.events) {
+        const card = element("article", undefined, "card");
+
+        card.append(
+          element("h3", event.name),
+          element("p", formatDate(event.event_date))
+        );
+
+        if (event.archived) {
+          card.append(element("p", "Événement archivé.", "muted"));
+        }
+
+        const preparations = state.data.operations.filter(
+          (operation) =>
+            operation.event_id === event.id &&
+            state.data.lines.some((line) =>
+              line.operation_id === operation.id &&
+              ["consumption", "internal_use", "loan"]
+                .includes(line.kind)
+            )
+        );
+
+        for (const operation of preparations) {
+          card.append(
+            element(
+              "p",
+              `${dateTime(operation.created_at)} — ${operation.reason}`
+            ),
+            button(
+              "Reprendre cette préparation",
+              () => prepareFrom(operation)
+            )
+          );
+        }
+
+        if (!preparations.length) {
+          card.append(
+            element(
+              "p",
+              "Aucune préparation enregistrée.",
+              "muted"
+            )
+          );
+        }
+
+        list.append(card);
+      }
+    }
+
+    function openSettlement(origin, kind) {
+      if (state.busy || state.pending) return;
+
+      const selectedEvent = $("#cart-event").value || null;
+
+      const sameContext =
+        context() === origin.context &&
+        (
+          origin.context !== "event" ||
+          selectedEvent === origin.event_id
+        );
+
+      if (state.cart.length && !sameContext) {
+        message(
+          "Le panier utilise un autre contexte. Validez-le ou " +
+          "videz-le avant de préparer cette régularisation.",
+          true
+        );
+        return;
+      }
+
+      openEditor(
+        `${kinds[kind]} — ${origin.article_name}`,
+        () => {
+          const quantity = field(
+            "edit-quantity",
+            "Quantité",
+            "number"
+          );
+
+          quantity.min = "1";
+          quantity.max = String(origin.remaining_quantity);
+          quantity.step = "1";
+          quantity.value = String(origin.remaining_quantity);
+          quantity.required = true;
+        },
+        async () => {
+          const quantity = Number($("#edit-quantity").value);
+
+          if (
+            !Number.isSafeInteger(quantity) ||
+            quantity <= 0 ||
+            quantity > origin.remaining_quantity
+          ) {
+            throw new Error(
+              "Quantité invalide pour cette sortie."
+            );
+          }
+
+          $(
+            `input[name="context"][value="${origin.context}"]`
+          ).checked = true;
+
+          $("#cart-event").value = origin.event_id || "";
+
+          state.cart.push({
+            article_id: origin.article_id,
+            lot_id: null,
+            kind,
+            quantity,
+            beneficiary: null,
+            origin_line_id: origin.origin_line_id
+          });
+
+          if (!$("#cart-reason").value.trim()) {
+            $("#cart-reason").value =
+              "Retour ou incident sur matériel sorti";
+          }
+
+          $("#editor").close();
+          renderCart();
+          selectTab("cart");
+          message("Régularisation ajoutée au panier.");
+        }
+      );
+    }
+
+    function renderReturns() {
+      const list = $("#returns-list");
+      list.replaceChildren();
+
+      if (!state.data.outstanding.length) {
+        list.append(
+          element("p", "Aucun matériel restant à rendre.")
+        );
+      }
+
+      for (const origin of state.data.outstanding) {
+        const card = element("article", undefined, "card");
+
+        card.append(
+          element("h3", origin.article_name),
+          element("p", kinds[origin.kind]),
+          element(
+            "p",
+            origin.event_name || "Inventaire — prêt hors événement"
+          ),
+          element(
+            "p",
+            `Restant : ${origin.remaining_quantity} ${origin.unit}`
+          )
+        );
+
+        if (origin.beneficiary) {
+          card.append(
+            element(
+              "p",
+              `Bénéficiaire : ${origin.beneficiary}`
+            )
+          );
+        }
+
+        card.append(
+          button(
+            "Retour",
+            () => openSettlement(origin, "return")
+          ),
+          button(
+            "Perte",
+            () => openSettlement(origin, "loss")
+          ),
+          button(
+            "Casse",
+            () => openSettlement(origin, "breakage")
+          )
+        );
+
+        list.append(card);
+      }
+    }
+
+    function renderHistory() {
+      const list = $("#operations-list");
+      list.replaceChildren();
+
+      if (!state.data.operations.length) {
+        list.append(element("p", "Aucun panier validé."));
+      }
+
+      for (const operation of state.data.operations) {
+        const card = element("article", undefined, "card");
+
+        card.append(
+          element("h3", operation.event_name || "Inventaire"),
+          element("p", operation.reason),
+          element(
+            "p",
+            `${dateTime(operation.created_at)} — ${operation.author}`
+          )
+        );
+
+        const lines = element("ul");
+
+        for (const line of state.data.lines.filter(
+          (item) => item.operation_id === operation.id
+        )) {
+          lines.append(
+            element(
+              "li",
+              `${kinds[line.kind]} — ${line.article_name} — ` +
+              `${line.quantity} ${line.unit}` +
+              (line.lot_reference
+                ? ` — lot ${line.lot_reference}`
+                : "")
+            )
+          );
+        }
+
+        card.append(lines);
+        list.append(card);
+      }
+
+      const movements = $("#movement-list");
+      movements.replaceChildren();
+
+      for (const item of state.data.history) {
+        movements.append(
+          element(
+            "li",
+            `${dateTime(item.created_at)} — ` +
+            `${item.movement_type === "entry" ? "Entrée" : "Sortie"} — ` +
+            `${item.article_name} — ${item.quantity} ${item.unit} — ` +
+            `${item.author} — ${item.reason}`
+          )
+        );
+      }
+    }
+
+    function render() {
+      $("#new-article").hidden =
+        state.member.role !== "admin";
+
+      fillEvents();
+      renderStock();
+      renderCart();
+      renderEvents();
+      renderReturns();
+      renderHistory();
+      syncControls();
+    }
+
+    // Appelée avec state.busy déjà positionné à true.
+    async function executePending() {
+      if (!state.pending) return;
+
+      const pending = state.pending;
+      let confirmed = false;
+
+      try {
+        const result = await rpc(
+          pending.name,
+          pending.payload
+        );
+
+        if (
+          pending.name === "receive_new_lot" &&
+          (!result?.lot_id || !result?.operation_id)
+        ) {
+          throw new ApiError(
+            "Résultat de réception inattendu."
+          );
+        }
+
+        if (
+          pending.name === "validate_stock_operation" &&
+          typeof result !== "string"
+        ) {
+          throw new ApiError(
+            "Résultat de panier inattendu."
+          );
+        }
+
+        confirmed = true;
+        state.pending = null;
+
+        if (pending.name === "validate_stock_operation") {
+          state.cart = [];
+          state.source = null;
+          $("#cart-reason").value = "";
+        }
+
+        renderCart();
+
+        await updateAfterWrite(
+          pending.name === "receive_new_lot"
+            ? "Lot créé et quantité reçue enregistrée."
+            : "Panier enregistré."
+        );
+      } catch (error) {
+        if (confirmed) {
+          message(
+            "Opération enregistrée. Actualisez l’affichage " +
+            "sans répéter l’opération.",
+            true
+          );
+          return;
+        }
+
+        const uncertain =
+          !(error instanceof ApiError) ||
+          error.status === 0 ||
+          error.status === 408 ||
+          error.status >= 500;
+
+        // Après une première réponse incertaine, une erreur ultérieure
+        // ne suffit pas à conclure que l'opération initiale a échoué.
+        if (uncertain || pending.uncertain) {
+          pending.uncertain = true;
+          state.pending = pending;
+
+          message(
+            error.message +
+            " Le résultat reste incertain : utilisez le bouton " +
+            "de vérification sans recharger la page.",
+            true
+          );
+        } else {
+          state.pending = null;
+
+          message(
+            error.message +
+            " La demande a été refusée. " +
+            (
+              pending.name === "validate_stock_operation"
+                ? "Le panier reste disponible pour correction."
+                : "Vous pouvez rouvrir le formulaire pour corriger la réception."
+            ),
+            true
+          );
+        }
+      }
+    }
+
+    async function retryPending() {
+      if (!state.pending || state.busy) return;
+
+      state.busy = true;
+      syncControls();
+
+      try {
+        await executePending();
+      } finally {
+        state.busy = false;
+        syncControls();
+      }
+    }
+
+    $("#validate-cart").addEventListener("click", async () => {
+      if (state.busy || state.pending) return;
+
+      const reason = $("#cart-reason").value.trim();
+
+      const eventId = context() === "event"
+        ? $("#cart-event").value
+        : null;
+
+      if (
+        !state.cart.length ||
+        !reason ||
+        reason.length > 200
+      ) {
+        message(
+          "Ajoutez des lignes et un motif de 1 à 200 caractères.",
+          true
+        );
+        return;
+      }
+
+      if (context() === "event" && !eventId) {
+        message("Choisissez un événement.", true);
+        return;
+      }
+
+      if (state.cart.some((line) =>
+        !Number.isSafeInteger(line.quantity) ||
+        line.quantity <= 0 ||
+        line.quantity > 2147483647
+      )) {
+        message(
+          "Toutes les quantités doivent être des entiers positifs.",
+          true
+        );
+        return;
+      }
+
+      if (state.cart.some((line) =>
+        article(line.article_id)?.category === "food" &&
+        !line.lot_id
+      )) {
+        message("Choisissez un lot pour chaque denrée.", true);
+        return;
+      }
+
+      if (!confirm(
+        `Valider ${state.cart.length} ligne(s) ? ` +
+        "Cette action modifiera le stock."
+      )) return;
+
+      try {
+        state.pending = {
+          name: "validate_stock_operation",
+          label: "Validation du panier.",
+          uncertain: false,
+          payload: {
+            p_request_id: newRequestId(),
+            p_context: context(),
+            p_event_id: eventId || null,
+            p_reason: reason,
+            p_source_operation_id:
+              context() === "event" ? state.source : null,
+            p_lines: structuredClone(state.cart)
+          }
+        };
+
+        await retryPending();
+      } catch (error) {
+        message(error.message, true);
+      }
+    });
+
+    $("#retry").addEventListener("click", retryPending);
+
+    $("#empty-cart").addEventListener("click", () => {
+      if (state.busy || state.pending) return;
+
+      if (
+        state.cart.length &&
+        !confirm("Vider le panier ?")
+      ) return;
+
+      state.cart = [];
+      state.source = null;
+      renderCart();
+    });
+
+    for (const radio of document.querySelectorAll(
+      'input[name="context"]'
+    )) {
+      radio.addEventListener("change", renderCart);
+    }
+
+    $("#cart-event").addEventListener("change", () => {
+      if (state.cart.some((line) => line.origin_line_id)) {
+        message(
+          "Les régularisations doivent conserver " +
+          "l’événement de leur sortie d’origine.",
+          true
+        );
+      }
+    });
+
+    $("#search").addEventListener("input", renderStock);
+
+    for (const item of document.querySelectorAll("[data-tab]")) {
+      item.addEventListener(
+        "click",
+        () => selectTab(item.dataset.tab)
+      );
+    }
+
+    $("#new-article").addEventListener("click", openArticle);
+    $("#new-event").addEventListener("click", openEvent);
+    $("#new-event-list").addEventListener("click", openEvent);
+
+    $("#editor-cancel").addEventListener("click", () => {
+      if (!state.busy) $("#editor").close();
+    });
+
+    $("#editor").addEventListener("cancel", (event) => {
+      if (state.busy) event.preventDefault();
+    });
+
+    $("#editor-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      task(async () => {
+        await state.editorAction();
+      });
+    });
+
+    $("#refresh").addEventListener("click", async () => {
+      if (state.busy) return;
+
+      state.busy = true;
+      syncControls();
+
+      try {
+        await load();
+
+        message(
+          state.pending
+            ? "Données actualisées. Vérifiez l’opération en attente " +
+              "avec son bouton."
+            : "Données actualisées."
+        );
+      } catch (error) {
+        message(error.message, true);
+      } finally {
+        state.busy = false;
+        syncControls();
+      }
+    });
+
+    $("#login-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (state.busy) return;
+
+      state.busy = true;
+      $("#login-form button").disabled = true;
+
+      try {
+        checkConfiguration();
+
+        const session = await rawRequest(
+          "/auth/v1/token?grant_type=password",
+          post({
+            email: $("#email").value.trim(),
+            password: $("#password").value
+          })
+        );
+
+        setSession(session);
+        $("#password").value = "";
+
+        const members = await api(
+          "/rest/v1/members?select=display_name,role,active" +
+          `&user_id=eq.${encodeURIComponent(state.session.userId)}`
+        );
+
+        if (
+          !Array.isArray(members) ||
+          members.length !== 1 ||
+          !members[0].active
+        ) {
+          throw new Error("Compte non autorisé.");
+        }
+
+        state.member = members[0];
+        await load();
+
+        $("#identity").textContent =
+          state.member.display_name;
+
+        $("#login-panel").hidden = true;
+        $("#workspace").hidden = false;
+        message("Connexion réussie.");
+      } catch (error) {
+        let revokeFailed = false;
+
+        if (state.session) {
+          try {
+            await rawRequest(
+              "/auth/v1/logout?scope=local",
+              { method: "POST" },
+              state.session.token
+            );
+          } catch {
+            revokeFailed = true;
+          }
+        }
+
+        state.session = null;
+        state.member = null;
+
+        message(
+          error.message +
+          (
+            revokeFailed
+              ? " Connexion locale effacée ; révocation côté " +
+                "service non confirmée."
+              : ""
+          ),
+          true
+        );
+      } finally {
+        $("#password").value = "";
+        state.busy = false;
+        $("#login-form button").disabled = false;
+        syncControls();
+      }
+    });
+
+    $("#logout").addEventListener("click", async () => {
+      if (state.busy || state.pending) return;
+
+      if (
+        state.cart.length &&
+        !confirm(
+          "La déconnexion abandonnera le panier non validé. Continuer ?"
+        )
+      ) return;
+
+      state.busy = true;
+      syncControls();
+
+      let revokeFailed = false;
+
+      try {
+        await ensureSession();
+
+        await rawRequest(
+          "/auth/v1/logout?scope=local",
+          { method: "POST" },
+          state.session.token
+        );
+      } catch {
+        revokeFailed = true;
+      } finally {
+        state.session = null;
+        state.member = null;
+        state.cart = [];
+        state.source = null;
+        state.pending = null;
+        state.data = emptyData();
+
+        for (const selector of [
+          "#stock-list",
+          "#cart-list",
+          "#events-list",
+          "#returns-list",
+          "#operations-list",
+          "#movement-list"
+        ]) {
+          $(selector).replaceChildren();
+        }
+
+        $("#identity").textContent = "";
+        $("#cart-count").textContent = "0";
+        $("#cart-reason").value = "";
+        $("#cart-source").textContent = "";
+
+        $("#workspace").hidden = true;
+        $("#login-panel").hidden = false;
+
+        state.busy = false;
+        syncControls();
+
+        message(
+          revokeFailed
+            ? "Connexion locale effacée. Révocation côté " +
+              "service non confirmée."
+            : "Vous êtes déconnecté.",
+          revokeFailed
+        );
+      }
+    });
+
+    window.addEventListener("beforeunload", (event) => {
+      if (state.cart.length || state.pending) {
+        event.preventDefault();
+        event.returnValue = "";
+      }
+    });
+
+    syncControls();
+  </script>
+</body>
+</html>
