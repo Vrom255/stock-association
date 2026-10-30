@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+
+  <title>Récupération du mot de passe — Stock</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      margin: 0;
+      background: #f3f5f7;
+      color: #182230;
+      font-family: system-ui, sans-serif;
+    }
+
+    header {
+      padding: 24px;
+      background: #164e63;
+      color: white;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    main {
+      width: min(100% - 32px, 560px);
+      margin: 24px auto;
+    }
+
+    .panel {
+      padding: 24px;
+      border: 1px solid #d6dce2;
+      border-radius: 12px;
+      background: white;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    input,
+    button {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px;
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    input {
+      border: 1px solid #6b7280;
+    }
+
+    button {
+      margin-top: 20px;
+      border: none;
+      background: #164e63;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    :focus-visible {
+      outline: 3px solid #0284c7;
+      outline-offset: 2px;
+    }
+
+    .muted {
+      color: #52606d;
+    }
+
+    #message {
+      overflow-wrap: anywhere;
+    }
+
+    #message[data-error="true"] {
+      color: #b91c1c;
+    }
+
+    #message[data-error="false"] {
+      color: #166534;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Stock de l’association</h1>
+  </header>
+
+  <main>
+    <section id="request-panel" class="panel">
+      <h2>Mot de passe oublié</h2>
+
+      <p>
+        Indiquez l’adresse e-mail de votre compte pour recevoir
+        un lien de récupération.
+      </p>
+
+      <form id="request-form">
+        <label for="email">Adresse e-mail</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          required
+        >
+
+        <button id="request-button" type="submit">
+          Envoyer le lien de récupération
+        </button>
+      </form>
+    </section>
+
+    <section id="password-panel" class="panel" hidden>
+      <h2>Choisir un nouveau mot de passe</h2>
+
+      <p class="muted">
+        Utilisez un mot de passe unique.
+        Cette page demande au minimum 12 caractères.
+        Les règles supplémentaires de votre projet Supabase
+        restent applicables.
+      </p>
+
+      <form id="password-form">
+        <label for="new-password">Nouveau mot de passe</label>
+        <input
+          id="new-password"
+          type="password"
+          autocomplete="new-password"
+          minlength="12"
+          required
+        >
+
+        <label for="confirm-password">Confirmer le mot de passe</label>
+        <input
+          id="confirm-password"
+          type="password"
+          autocomplete="new-password"
+          minlength="12"
+          required
+        >
+
+        <button id="password-button" type="submit">
+          Enregistrer le nouveau mot de passe
+        </button>
+      </form>
+    </section>
+
+    <p id="message" role="status" aria-live="polite"></p>
+
+    <p>
+      <a href="./">Retour à l’application</a>
+    </p>
+  </main>
+
+  <script>
+    "use strict";
+
+    // URL sans /rest/v1 et clé publique uniquement.
+    const SUPABASE_URL = "https://vvztixmaprgyskyukjzf.supabase.co";
+    const SUPABASE_PUBLIC_KEY = "sb_publishable_s5Av7rubmMRH-HdTt9kxmA_X0G_eopj";
+
+    const RECOVERY_URL =
+      "https://vrom255.github.io/stock-association/recuperation.html";
+
+    const $ = (selector) => document.querySelector(selector);
+
+    let recoveryToken = null;
+    let busy = false;
+
+    // Lire puis retirer immédiatement les paramètres sensibles de l'URL.
+    const recoveryParameters = new URLSearchParams(
+      window.location.hash.slice(1)
+    );
+
+    const hadLinkParameters =
+      Boolean(window.location.hash || window.location.search);
+
+    history.replaceState(null, "", window.location.pathname);
+
+    function showMessage(text, error = false) {
+      $("#message").textContent = text;
+      $("#message").dataset.error = String(error);
+    }
+
+    function setBusy(value) {
+      busy = value;
+      $("#request-button").disabled = value;
+      $("#password-button").disabled = value;
+    }
+
+    function checkConfiguration() {
+      const url = new URL(SUPABASE_URL);
+
+      if (
+        SUPABASE_URL.includes("VOTRE-PROJET") ||
+        SUPABASE_PUBLIC_KEY === "VOTRE_CLE_PUBLIQUE" ||
+        SUPABASE_PUBLIC_KEY.startsWith("sb_secret_") ||
+        url.protocol !== "https:" ||
+        (url.pathname !== "/" && url.pathname !== "")
+      ) {
+        throw new Error(
+          "Vérifiez l’URL Supabase sans /rest/v1 et sa clé publique."
+        );
+      }
+    }
+
+    async function request(path, options = {}, token = null) {
+      let response;
+
+      try {
+        response = await fetch(
+          SUPABASE_URL.replace(/\/+$/, "") + path,
+          {
+            ...options,
+            headers: {
+              apikey: SUPABASE_PUBLIC_KEY,
+              ...(token
+                ? { Authorization: `Bearer ${token}` }
+                : {}),
+              ...options.headers
+            },
+            cache: "no-store",
+            signal: AbortSignal.timeout(15000)
+          }
+        );
+      } catch {
+        throw new Error(
+          "La réponse du service n’a pas pu être obtenue. " +
+          "Vérifiez votre connexion."
+        );
+      }
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error(
+            "Trop de tentatives. Attendez avant de réessayer."
+          );
+        }
+
+        if (path === "/auth/v1/user" && options.method === "PUT") {
+          throw new Error(
+            "Le changement a été refusé. Le lien peut être expiré, " +
+            "ou le mot de passe ne pas respecter les règles du projet."
+          );
+        }
+
+        throw new Error(
+          "La demande a été refusée. Vérifiez la configuration " +
+          "ou demandez un nouveau lien."
+        );
+      }
+
+      return response;
+    }
+
+    function jsonOptions(method, body) {
+      return {
+        method,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      };
+    }
+
+    $("#request-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (busy) return;
+
+      setBusy(true);
+      showMessage("");
+
+      try {
+        checkConfiguration();
+
+        await request(
+          "/auth/v1/recover?redirect_to=" +
+            encodeURIComponent(RECOVERY_URL),
+          jsonOptions("POST", {
+            email: $("#email").value.trim()
+          })
+        );
+
+        // Ne pas confirmer publiquement si une adresse possède un compte.
+        showMessage(
+          "Si cette adresse correspond à un compte éligible, " +
+          "un e-mail de récupération vous sera envoyé. " +
+          "Vérifiez aussi les courriers indésirables."
+        );
+      } catch (error) {
+        showMessage(error.message, true);
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    $("#password-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (busy || !recoveryToken) return;
+
+      const password = $("#new-password").value;
+      const confirmation = $("#confirm-password").value;
+
+      if (password.length < 12 || password !== confirmation) {
+        showMessage(
+          "Les mots de passe doivent être identiques " +
+          "et contenir au moins 12 caractères.",
+          true
+        );
+        return;
+      }
+
+      setBusy(true);
+      showMessage("");
+
+      try {
+        await request(
+          "/auth/v1/user",
+          jsonOptions("PUT", {
+            password
+          }),
+          recoveryToken
+        );
+
+        // Demander la révocation des sessions de ce compte.
+        // Les jetons d'accès déjà émis peuvent rester valides
+        // jusqu'à leur expiration.
+        let revocationFailed = false;
+
+        try {
+          await request(
+            "/auth/v1/logout?scope=global",
+            { method: "POST" },
+            recoveryToken
+          );
+        } catch {
+          revocationFailed = true;
+        }
+
+        recoveryToken = null;
+        $("#password-panel").hidden = true;
+
+        showMessage(
+          "Votre mot de passe a été modifié. " +
+          "Retournez à l’application et connectez-vous avec le nouveau." +
+          (revocationFailed
+            ? " La révocation des autres sessions n’a pas pu être confirmée."
+            : "")
+        );
+      } catch (error) {
+        showMessage(
+          error.message +
+          " Si la réponse réseau était incertaine, essayez le nouveau " +
+          "mot de passe dans l’application avant de demander un autre lien.",
+          true
+        );
+      } finally {
+        $("#new-password").value = "";
+        $("#confirm-password").value = "";
+        setBusy(false);
+      }
+    });
+
+    async function initialize() {
+      if (!hadLinkParameters) return;
+
+      setBusy(true);
+
+      try {
+        checkConfiguration();
+
+        if (
+          recoveryParameters.get("type") !== "recovery" ||
+          !recoveryParameters.get("access_token")
+        ) {
+          throw new Error(
+            "Le lien est invalide, expiré ou utilise un parcours " +
+            "non pris en charge par cette page. Demandez un nouveau lien."
+          );
+        }
+
+        const token = recoveryParameters.get("access_token");
+
+        // Supabase vérifie le jeton ; les paramètres de l'URL seuls
+        // ne constituent pas une preuve d'authentification.
+        await request(
+          "/auth/v1/user",
+          { method: "GET" },
+          token
+        );
+
+        recoveryToken = token;
+        $("#request-panel").hidden = true;
+        $("#password-panel").hidden = false;
+        $("#new-password").focus();
+
+        showMessage(
+          "Lien vérifié. Vous pouvez choisir votre nouveau mot de passe."
+        );
+      } catch (error) {
+        recoveryToken = null;
+        showMessage(error.message, true);
+      } finally {
+        // Ne pas conserver une deuxième copie des jetons du lien.
+        for (const key of [...recoveryParameters.keys()]) {
+          recoveryParameters.delete(key);
+        }
+
+        setBusy(false);
+      }
+    }
+
+    initialize();
+  </script>
+</body>
+</html>
